@@ -161,9 +161,11 @@ function AuditEditor() {
       <Tabs defaultValue="intake">
         <TabsList className="label-mono h-auto flex-wrap bg-card">
           <TabsTrigger value="intake">Intake</TabsTrigger>
+          <TabsTrigger value="introduction">Introduction</TabsTrigger>
           <TabsTrigger value="maturity">Maturity</TabsTrigger>
           <TabsTrigger value="findings">Findings</TabsTrigger>
           <TabsTrigger value="opportunities">Opportunities</TabsTrigger>
+          <TabsTrigger value="timeline-cost">Timeline & Cost</TabsTrigger>
           <TabsTrigger value="evidence">Evidence</TabsTrigger>
           <TabsTrigger value="roadmap">Roadmap</TabsTrigger>
           <TabsTrigger value="proposal">Proposal</TabsTrigger>
@@ -271,6 +273,30 @@ function AuditEditor() {
             >
               <Trash2 className="size-3.5" /> Delete this audit
             </Button>
+          </div>
+        </TabsContent>
+
+        {/* ---------------- Introduction ---------------- */}
+        <TabsContent value="introduction" className="mt-8">
+          <div className="grid gap-6">
+            <Field label="Introduction">
+              <Textarea
+                rows={6}
+                placeholder="On [date], UiLab visited [client], organised and led by [contact] with [roles] joining on occasion. [Client] focuses on [what they make/do]..."
+                value={draft.introduction}
+                onChange={(e) => patch({ introduction: e.target.value })}
+              />
+            </Field>
+            <Field label="Growth goals">
+              <Textarea
+                rows={6}
+                placeholder={
+                  "One goal per line, e.g.\nSecuring consistent quality across all lines\nIncreasing throughput and machine occupancy\nReduction in unplanned downtime"
+                }
+                value={draft.growthGoals}
+                onChange={(e) => patch({ growthGoals: e.target.value })}
+              />
+            </Field>
           </div>
         </TabsContent>
 
@@ -460,6 +486,13 @@ function AuditEditor() {
                     </Button>
                   </div>
                   <div className="mt-4 grid gap-4 md:grid-cols-3">
+                    <Field label="Section">
+                      <Input
+                        placeholder="e.g. Material Mixing, Production Line, General"
+                        value={o.section}
+                        onChange={(e) => set({ section: e.target.value })}
+                      />
+                    </Field>
                     <Field label="Process">
                       <Input value={o.process} onChange={(e) => set({ process: e.target.value })} />
                     </Field>
@@ -509,6 +542,14 @@ function AuditEditor() {
                       <PickRating value={o.pricingRating} onChange={(v) => set({ pricingRating: v })} />
                     </Field>
                   </div>
+                  <Field label="Narrative" className="mt-4">
+                    <Textarea
+                      rows={3}
+                      placeholder="Detailed write-up of the current process and the recommended automation — shown in the report's detailed opportunities section."
+                      value={o.narrative}
+                      onChange={(e) => set({ narrative: e.target.value })}
+                    />
+                  </Field>
                 </div>
               );
             })}
@@ -532,12 +573,99 @@ function AuditEditor() {
                     complexity: 1,
                     timelineRating: 1,
                     pricingRating: 1,
+                    section: "General",
+                    narrative: "",
                   },
                 ],
               })
             }
           >
             <Plus className="size-3.5" /> Add opportunity
+          </Button>
+        </TabsContent>
+
+        {/* ---------------- Timeline & Cost ---------------- */}
+        <TabsContent value="timeline-cost" className="mt-8">
+          <p className="mb-6 max-w-2xl text-sm opacity-70">
+            A phased $ estimate of the whole engagement, by section — shown in the report as the
+            Timeline & cost estimate table.
+          </p>
+          <div className="space-y-4">
+            {draft.costPhases.map((c, i) => {
+              const set = (partial: Partial<typeof c>) => {
+                const costPhases = [...draft.costPhases];
+                costPhases[i] = { ...c, ...partial };
+                patch({ costPhases });
+              };
+              return (
+                <div key={c.id} className="border bg-card p-5">
+                  <div className="flex items-center gap-3">
+                    <Input
+                      placeholder="Section, e.g. Production Line"
+                      value={c.section}
+                      onChange={(e) => set({ section: e.target.value })}
+                    />
+                    <ReorderButtons
+                      isFirst={i === 0}
+                      isLast={i === draft.costPhases.length - 1}
+                      onMove={(dir) => patch({ costPhases: moveItem(draft.costPhases, i, dir) })}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Delete cost phase"
+                      onClick={() =>
+                        patch({ costPhases: draft.costPhases.filter((x) => x.id !== c.id) })
+                      }
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                  <div className="mt-4 grid gap-4 md:grid-cols-3">
+                    <Field label="Estimated time">
+                      <Input
+                        placeholder="Month 1 – Month 8"
+                        value={c.estimatedTime}
+                        onChange={(e) => set({ estimatedTime: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Estimated cost">
+                      <Input
+                        placeholder="$200,000 – $300,000"
+                        value={c.estimatedCost}
+                        onChange={(e) => set({ estimatedCost: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="UiLab support">
+                      <Input
+                        placeholder="Per project fixed fee or retainer"
+                        value={c.supportModel}
+                        onChange={(e) => set({ supportModel: e.target.value })}
+                      />
+                    </Field>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <Button
+            className="label-mono mt-6"
+            onClick={() =>
+              patch({
+                costPhases: [
+                  ...draft.costPhases,
+                  {
+                    id: uid("c"),
+                    section: "",
+                    estimatedTime: "",
+                    estimatedCost: "",
+                    supportModel: "",
+                  },
+                ],
+              })
+            }
+          >
+            <Plus className="size-3.5" /> Add cost phase
           </Button>
         </TabsContent>
 

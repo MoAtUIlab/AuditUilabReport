@@ -27,6 +27,18 @@ export interface Opportunity {
   complexity: Rating;
   timelineRating: Rating;
   pricingRating: Rating;
+  /** Groups opportunities in the report, e.g. "Material Mixing", "Production Line", "General". */
+  section: string;
+  /** Longer write-up shown in the report's detailed opportunities section. */
+  narrative: string;
+}
+
+export interface CostPhase {
+  id: string;
+  section: string;
+  estimatedTime: string;
+  estimatedCost: string;
+  supportModel: string;
 }
 
 export interface EvidencePhoto {
@@ -74,11 +86,17 @@ export interface Audit {
   reference: string;
   executiveSummary: string;
   scope: string;
+  /** Site-visit narrative: who attended, company background, why UiLab visited. */
+  introduction: string;
+  /** One line per goal, rendered as a numbered list, e.g. "Securing consistent quality across all lines". */
+  growthGoals: string;
   maturity: MaturityScore[];
   findings: Finding[];
   opportunities: Opportunity[];
   photos: EvidencePhoto[];
   recommendations: Recommendation[];
+  /** Phased $ cost-of-engagement estimate across the whole project, shown in Timeline & Cost. */
+  costPhases: CostPhase[];
   /** On-site capture: GPS position and label taken during the walkthrough. */
   latitude?: number | null;
   longitude?: number | null;

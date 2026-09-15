@@ -102,6 +102,31 @@ export function ReportDocument({ audit }: { audit: Audit }) {
           </dl>
         </header>
 
+        {audit.introduction || audit.growthGoals ? (
+          <Section number={nextSection()} title="Introduction">
+            {audit.introduction ? (
+              <p className="max-w-3xl leading-relaxed">{audit.introduction}</p>
+            ) : null}
+            {audit.growthGoals ? (
+              <div className="mt-8">
+                <MonoLabel className="opacity-100">Specifically:</MonoLabel>
+                <ol className="mt-4 space-y-2">
+                  {audit.growthGoals
+                    .split("\n")
+                    .map((line) => line.trim())
+                    .filter(Boolean)
+                    .map((line, i) => (
+                      <li key={i} className="flex gap-3 text-sm leading-relaxed opacity-80">
+                        <span className="label-mono text-summer opacity-100">{i + 1}</span>
+                        {line}
+                      </li>
+                    ))}
+                </ol>
+              </div>
+            ) : null}
+          </Section>
+        ) : null}
+
         <Section number={nextSection()} title="About UiLab">
           <p className="max-w-3xl leading-relaxed">
             UiLab is a Logan City Council-owned, privately operated enterprise focused on driving
@@ -333,6 +358,70 @@ export function ReportDocument({ audit }: { audit: Audit }) {
             </tbody>
           </table>
         </Section>
+
+        {audit.costPhases.length > 0 ? (
+          <Section number={nextSection()} title="Timeline and cost estimate" break>
+            <p className="max-w-3xl leading-relaxed opacity-80">
+              Whilst each step is itemised, we can work on multiple steps concurrently. These
+              figures are indicative and will become firmer as we progress with a full scope.
+            </p>
+            <table className="mt-8 w-full border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-y border-ink/20">
+                  <th className="label-mono py-3 pr-3">Section</th>
+                  <th className="label-mono py-3 pr-3">Estimated time</th>
+                  <th className="label-mono py-3 pr-3">Estimated cost</th>
+                  <th className="label-mono py-3">UiLab support</th>
+                </tr>
+              </thead>
+              <tbody>
+                {audit.costPhases.map((c) => (
+                  <tr key={c.id} className="avoid-break border-b border-ink/10 align-top">
+                    <td className="py-3 pr-3 font-medium">{c.section}</td>
+                    <td className="py-3 pr-3 opacity-80">{c.estimatedTime}</td>
+                    <td className="py-3 pr-3 opacity-80">{c.estimatedCost}</td>
+                    <td className="py-3 opacity-80">{c.supportModel}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Section>
+        ) : null}
+
+        {audit.opportunities.some((o) => o.narrative) ? (
+          <Section number={nextSection()} title="Automation opportunities in detail" break>
+            <p className="max-w-3xl leading-relaxed opacity-80">
+              The following section outlines each opportunity in detail, organised by area. Note:
+              this is not necessarily the order we would advise for implementation.
+            </p>
+            {Object.entries(
+              audit.opportunities.reduce<Record<string, typeof audit.opportunities>>((acc, o) => {
+                const key = o.section || "General";
+                (acc[key] ??= []).push(o);
+                return acc;
+              }, {}),
+            ).map(([section, items]) => (
+              <div key={section} className="mt-10">
+                <h3 className="text-xl font-bold tracking-[-0.02em]">{section}</h3>
+                <div className="mt-6 space-y-8">
+                  {items.map((o) => (
+                    <div key={o.id} className="avoid-break border-l-2 border-summer pl-5">
+                      <MonoLabel className="opacity-100">{o.title}</MonoLabel>
+                      {o.narrative ? (
+                        <p className="mt-2 max-w-3xl leading-relaxed opacity-80">{o.narrative}</p>
+                      ) : null}
+                      <div className="mt-3 flex flex-wrap gap-4">
+                        <RatingChip value={o.complexity} label="Complexity" />
+                        <RatingChip value={o.timelineRating} label="Timeline" />
+                        <RatingChip value={o.pricingRating} label="Pricing" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </Section>
+        ) : null}
 
         <Section number={nextSection()} title="The automation journey" break>
           <p className="max-w-3xl leading-relaxed opacity-80">The full journey at a glance:</p>

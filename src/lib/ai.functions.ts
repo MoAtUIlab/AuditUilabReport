@@ -6,6 +6,7 @@ const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3.8-flash";
 
 const scaleEnum = z.enum(["low", "medium", "high"]);
+const ratingEnum = z.union([z.literal(1), z.literal(2), z.literal(3)]);
 
 const draftSchema = z.object({
   client: z.string().default(""),
@@ -14,6 +15,8 @@ const draftSchema = z.object({
   headcount: z.number().default(0),
   executiveSummary: z.string().default(""),
   scope: z.string().default(""),
+  introduction: z.string().default(""),
+  growthGoals: z.string().default(""),
   maturity: z
     .array(
       z.object({
@@ -44,6 +47,11 @@ const draftSchema = z.object({
         hoursSavedPerYear: z.number().default(0),
         annualValue: z.number().default(0),
         horizon: z.string().default("0–3 months"),
+        complexity: ratingEnum.default(1),
+        timelineRating: ratingEnum.default(1),
+        pricingRating: ratingEnum.default(1),
+        section: z.string().default("General"),
+        narrative: z.string().default(""),
       }),
     )
     .default([]),
@@ -128,7 +136,7 @@ export const draftAuditFromNotes = createServerFn({ method: "POST" })
       { role: "system", content: SYSTEM },
       {
         role: "user",
-        content: `Turn these raw walkthrough notes into a structured audit as JSON with keys: client, site, industry, headcount (number), executiveSummary (2-3 paragraphs), scope, maturity (array of {label, score, note} — use these six labels: Data foundations, Process documentation, Systems integration, Workforce readiness, AI adoption, Measurement & reporting), findings (array of {area, observation, severity (low|moderate|high|critical), impact}), opportunities (array of {title, process, category, effort (low|medium|high), impact (low|medium|high), hoursSavedPerYear (number), annualValue (number, AUD), horizon}), recommendations (array of 2-4 {phase, title, detail} as a phased rollout).\n\nNOTES:\n${data.notes}`,
+        content: `Turn these raw walkthrough notes into a structured audit as JSON with keys: client, site, industry, headcount (number), executiveSummary (2-3 paragraphs), scope, introduction (1-2 paragraphs on who was visited and why, in the style of a consulting site-visit intro), growthGoals (2-5 short lines, one per goal, newline-separated, e.g. "Securing consistent quality across all lines"), maturity (array of {label, score, note} — use these six labels: Data foundations, Process documentation, Systems integration, Workforce readiness, AI adoption, Measurement & reporting), findings (array of {area, observation, severity (low|moderate|high|critical), impact}), opportunities (array of {title, process, category, effort (low|medium|high), impact (low|medium|high), hoursSavedPerYear (number), annualValue (number, AUD), horizon, complexity (1|2|3), timelineRating (1|2|3), pricingRating (1|2|3), section (which production area this belongs to, e.g. "Material Mixing", "Production Line", "General"), narrative (2-4 sentence detailed write-up of the current process and the recommended automation)}), recommendations (array of 2-4 {phase, title, detail} as a phased rollout).\n\nNOTES:\n${data.notes}`,
       },
     ]);
     return draftSchema.parse(extractJson(text));

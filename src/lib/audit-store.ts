@@ -33,6 +33,8 @@ export function createBlankAudit(profileId: string | null = null, auditor = ""):
     reference: `UIL-BW-${new Date().getFullYear()}-${Math.floor(Math.random() * 900 + 100)}`,
     executiveSummary: "",
     scope: "",
+    introduction: "",
+    growthGoals: "",
     maturity: [
       { id: uid("m"), label: "Data foundations", score: 0, note: "" },
       { id: uid("m"), label: "Process documentation", score: 0, note: "" },
@@ -45,6 +47,7 @@ export function createBlankAudit(profileId: string | null = null, auditor = ""):
     opportunities: [],
     photos: [],
     recommendations: [],
+    costPhases: [],
     latitude: null,
     longitude: null,
     locationLabel: "",

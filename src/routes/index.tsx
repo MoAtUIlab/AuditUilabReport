@@ -219,6 +219,8 @@ function NotesIntake({ saveAudit }: { saveAudit: (a: Audit) => Promise<void> }) 
         headcount: d.headcount,
         executiveSummary: d.executiveSummary,
         scope: d.scope,
+        introduction: d.introduction,
+        growthGoals: d.growthGoals,
         maturity: audit.maturity.map((m) => {
           const match = d.maturity.find(
             (x) => x.label.toLowerCase() === m.label.toLowerCase(),
@@ -226,13 +228,7 @@ function NotesIntake({ saveAudit }: { saveAudit: (a: Audit) => Promise<void> }) 
           return match ? { ...m, score: match.score, note: match.note } : m;
         }),
         findings: d.findings.map((f) => ({ ...f, id: crypto.randomUUID() })),
-        opportunities: d.opportunities.map((o) => ({
-          ...o,
-          id: crypto.randomUUID(),
-          complexity: 1 as const,
-          timelineRating: 1 as const,
-          pricingRating: 1 as const,
-        })),
+        opportunities: d.opportunities.map((o) => ({ ...o, id: crypto.randomUUID() })),
         recommendations: d.recommendations.map((r) => ({ ...r, id: crypto.randomUUID() })),
       };
       await saveAudit(filled);
