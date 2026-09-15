@@ -2,11 +2,14 @@ import {
   MaturityBars,
   MonoLabel,
   OpportunityMatrix,
+  RatingChip,
   ScaleChip,
   SeverityChip,
   UiLabWordmark,
 } from "@/components/brand";
 import {
+  ENGAGEMENT_STAGES,
+  ENGAGEMENT_STAGE_LABEL,
   currency,
   formatDate,
   maturityAverage,
@@ -15,10 +18,65 @@ import {
   type Audit,
 } from "@/lib/audit-types";
 
+const GENERAL_OBSERVATIONS = [
+  {
+    title: "Fault vs. cost analysis",
+    body: "Reviewing the production process with “stage in which a fault is noticed vs. cost of fixing it” in mind often uncovers additional automation potential.",
+  },
+  {
+    title: "Handling frequency",
+    body: "Asking how many times each part is picked up by the same person is a reliable way to surface automation potential.",
+  },
+  {
+    title: "Spreadsheets and handwritten labels",
+    body: "Experience shows that every spreadsheet is an automation that hasn't happened yet, or a bypass where automation (like an ERP) has failed.",
+  },
+  {
+    title: "Downtime attribution",
+    body: "A simple log of what caused downtime, how often, and for how long makes it possible to prioritise fixes with confidence rather than guesswork.",
+  },
+];
+
+const RATING_LEGEND: {
+  rating: 1 | 2 | 3;
+  complexity: string;
+  timeline: string;
+  pricing: string;
+}[] = [
+  { rating: 1, complexity: "Off-the-shelf solution", timeline: "Under 4 months", pricing: "Under $50,000" },
+  {
+    rating: 2,
+    complexity: "Requires research; integrator consultation",
+    timeline: "4 to 12 months",
+    pricing: "Under $300,000",
+  },
+  {
+    rating: 3,
+    complexity: "New frontiers; tailored solution; 3+ months development",
+    timeline: "12+ months",
+    pricing: "Over $300,000 (individual assessment)",
+  },
+];
+
+function engagementStatus(stage: string, current: string): "Complete" | "Next" | "Future" {
+  const order = ENGAGEMENT_STAGES;
+  const stageIdx = order.indexOf(stage as (typeof order)[number]);
+  const currentIdx = order.indexOf(current as (typeof order)[number]);
+  if (stageIdx < currentIdx) return "Complete";
+  if (stageIdx === currentIdx) return "Next";
+  return "Future";
+}
+
 /** The client-facing dossier body. Shared by the internal preview and the client link. */
 export function ReportDocument({ audit }: { audit: Audit }) {
   const quickWins = audit.opportunities.filter((o) => o.impact === "high" && o.effort !== "high");
   const ranked = [...audit.opportunities].sort((a, b) => b.annualValue - a.annualValue);
+  const hasProposal = Boolean(
+    audit.proposalInvestment || audit.proposalTimeline || audit.proposalScope,
+  );
+
+  let sectionNumber = 0;
+  const nextSection = () => String(++sectionNumber).padStart(2, "0");
 
   return (
     <>
@@ -44,7 +102,53 @@ export function ReportDocument({ audit }: { audit: Audit }) {
           </dl>
         </header>
 
-        <Section number="01" title="Executive summary">
+        <Section number={nextSection()} title="About UiLab">
+          <p className="max-w-3xl leading-relaxed">
+            UiLab is a Logan City Council-owned, privately operated enterprise focused on driving
+            growth and prosperity for Logan's industries and residents through the adoption of
+            emerging technologies. We specialise in AI and robotics, particularly automation
+            within manufacturing and warehousing, to help businesses grow.
+          </p>
+          <div className="mt-8 grid gap-8 sm:grid-cols-2">
+            <div>
+              <MonoLabel className="text-summer opacity-100">What makes us different</MonoLabel>
+              <p className="mt-3 max-w-md leading-relaxed opacity-80">
+                Our goal is to create a thriving City of Logan that embraces and is embraced by
+                the advanced and emerging technologies shaping the world around us. If you thrive,
+                Logan thrives — your success and growth is our focus.
+              </p>
+            </div>
+            <div>
+              <MonoLabel className="text-summer opacity-100">
+                Our goal for {audit.client || "you"}
+              </MonoLabel>
+              <p className="mt-3 max-w-md leading-relaxed opacity-80">
+                We want to help {audit.client || "your team"} unlock production capacity,
+                streamline core processes, and enable short, medium, and long-term business growth
+                whilst lifting profitability.
+              </p>
+            </div>
+          </div>
+          <div className="mt-10 border-t border-ink/15 pt-6">
+            <MonoLabel className="opacity-100">We support your every step</MonoLabel>
+            <ol className="mt-4 grid gap-4 sm:grid-cols-5">
+              {[
+                "Scope definition & process analysis",
+                "Feasibility, vendor selection & project plan",
+                "Procurement, design validation & factory acceptance",
+                "Delivery, commissioning & handover",
+                "Ongoing support & growth",
+              ].map((step, i) => (
+                <li key={step} className="avoid-break">
+                  <span className="label-mono text-summer opacity-100">{i + 1}</span>
+                  <p className="mt-1.5 text-sm leading-snug opacity-80">{step}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </Section>
+
+        <Section number={nextSection()} title="Executive summary">
           <p className="max-w-3xl text-lg leading-relaxed">{audit.executiveSummary}</p>
           <div className="mt-10 grid gap-px border border-ink/15 bg-ink/15 sm:grid-cols-3">
             <Headline label="Annual value identified" value={currency(totalValue(audit))} accent />
@@ -62,13 +166,13 @@ export function ReportDocument({ audit }: { audit: Audit }) {
           ) : null}
         </Section>
 
-        <Section number="02" title="Automation maturity profile" break>
+        <Section number={nextSection()} title="Automation maturity profile" break>
           <div className="max-w-2xl">
             <MaturityBars audit={audit} tone="light" />
           </div>
         </Section>
 
-        <Section number="03" title="Field findings">
+        <Section number={nextSection()} title="Field findings">
           <ul className="divide-y divide-ink/10 border-t border-ink/10">
             {audit.findings.map((f) => (
               <li key={f.id} className="avoid-break py-5">
@@ -86,8 +190,23 @@ export function ReportDocument({ audit }: { audit: Audit }) {
           </ul>
         </Section>
 
+        <Section number={nextSection()} title="General observations" break>
+          <p className="max-w-3xl leading-relaxed opacity-80">
+            A few methodology notes that shaped how we looked for automation potential during the
+            walkthrough:
+          </p>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2">
+            {GENERAL_OBSERVATIONS.map((o) => (
+              <div key={o.title} className="avoid-break border-l-2 border-summer pl-5">
+                <MonoLabel className="opacity-100">{o.title}</MonoLabel>
+                <p className="mt-2 text-sm leading-relaxed opacity-80">{o.body}</p>
+              </div>
+            ))}
+          </div>
+        </Section>
+
         {audit.photos.length > 0 ? (
-          <Section number="04" title="Photo evidence" break>
+          <Section number={nextSection()} title="Photo evidence" break>
             <div className="grid gap-6 sm:grid-cols-2">
               {audit.photos.map((p) => (
                 <figure key={p.id} className="avoid-break">
@@ -114,7 +233,34 @@ export function ReportDocument({ audit }: { audit: Audit }) {
           </Section>
         ) : null}
 
-        <Section number="05" title="Automation opportunities" break>
+        <Section number={nextSection()} title="Rating system" break>
+          <p className="max-w-3xl leading-relaxed opacity-80">
+            The following rating system is used throughout this report to give a quick-reference
+            assessment of each automation opportunity.
+          </p>
+          <table className="mt-8 w-full border-collapse text-left text-sm">
+            <thead>
+              <tr className="border-y border-ink/20">
+                <th className="label-mono py-3 pr-3">Rating</th>
+                <th className="label-mono py-3 pr-3">Complexity</th>
+                <th className="label-mono py-3 pr-3">Timeline</th>
+                <th className="label-mono py-3">Pricing</th>
+              </tr>
+            </thead>
+            <tbody>
+              {RATING_LEGEND.map((row) => (
+                <tr key={row.rating} className="border-b border-ink/10 align-top">
+                  <td className="py-3 pr-3 font-medium tabular-nums">{row.rating}/3</td>
+                  <td className="py-3 pr-3 opacity-80">{row.complexity}</td>
+                  <td className="py-3 pr-3 opacity-80">{row.timeline}</td>
+                  <td className="py-3 opacity-80">{row.pricing}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Section>
+
+        <Section number={nextSection()} title="Automation opportunities" break>
           <OpportunityMatrix audit={audit} tone="light" />
 
           {quickWins.length > 0 ? (
@@ -137,6 +283,7 @@ export function ReportDocument({ audit }: { audit: Audit }) {
                 <th className="label-mono py-3 pr-3">Opportunity</th>
                 <th className="label-mono py-3 pr-3">Process</th>
                 <th className="label-mono py-3 pr-3">Effort / impact</th>
+                <th className="label-mono py-3 pr-3">Complexity / timeline / pricing</th>
                 <th className="label-mono py-3 pr-3">Hours / yr</th>
                 <th className="label-mono py-3 text-right">Value / yr</th>
               </tr>
@@ -157,6 +304,13 @@ export function ReportDocument({ audit }: { audit: Audit }) {
                       <ScaleChip value={o.impact} label="Impact" />
                     </div>
                   </td>
+                  <td className="py-3 pr-3">
+                    <div className="flex flex-col gap-1">
+                      <RatingChip value={o.complexity} label="Complexity" />
+                      <RatingChip value={o.timelineRating} label="Timeline" />
+                      <RatingChip value={o.pricingRating} label="Pricing" />
+                    </div>
+                  </td>
                   <td className="py-3 pr-3 tabular-nums">
                     {o.hoursSavedPerYear.toLocaleString("en-AU")}
                   </td>
@@ -166,7 +320,7 @@ export function ReportDocument({ audit }: { audit: Audit }) {
                 </tr>
               ))}
               <tr className="border-b-2 border-ink">
-                <td className="label-mono py-3" colSpan={3}>
+                <td className="label-mono py-3" colSpan={4}>
                   Total
                 </td>
                 <td className="py-3 pr-3 font-bold tabular-nums">
@@ -180,9 +334,44 @@ export function ReportDocument({ audit }: { audit: Audit }) {
           </table>
         </Section>
 
-        {audit.recommendations.length > 0 ? (
-          <Section number="06" title="Recommended sequence" break>
-            <ol className="space-y-8">
+        <Section number={nextSection()} title="The automation journey" break>
+          <p className="max-w-3xl leading-relaxed opacity-80">The full journey at a glance:</p>
+          <table className="mt-8 w-full border-collapse text-left text-sm">
+            <thead>
+              <tr className="border-y border-ink/20">
+                <th className="label-mono py-3 pr-3">Stage</th>
+                <th className="label-mono py-3 pr-3">Focus</th>
+                <th className="label-mono py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ENGAGEMENT_STAGES.map((stage) => {
+                const status = engagementStatus(stage, audit.engagementStage);
+                return (
+                  <tr key={stage} className="border-b border-ink/10 align-top">
+                    <td className="py-3 pr-3 font-medium">Stage {stage}</td>
+                    <td className="py-3 pr-3 opacity-80">{ENGAGEMENT_STAGE_LABEL[stage]}</td>
+                    <td className="py-3">
+                      <span
+                        className={
+                          status === "Complete"
+                            ? "label-mono text-summer opacity-100"
+                            : status === "Next"
+                              ? "label-mono text-sun opacity-100"
+                              : "label-mono opacity-50"
+                        }
+                      >
+                        {status}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          {audit.recommendations.length > 0 ? (
+            <ol className="mt-10 space-y-8">
               {audit.recommendations.map((r) => (
                 <li key={r.id} className="avoid-break border-l-2 border-summer pl-5">
                   <MonoLabel className="text-summer opacity-100">{r.phase}</MonoLabel>
@@ -191,6 +380,45 @@ export function ReportDocument({ audit }: { audit: Audit }) {
                 </li>
               ))}
             </ol>
+          ) : null}
+        </Section>
+
+        {hasProposal ? (
+          <Section number={nextSection()} title="Proposal" break>
+            <p className="max-w-3xl leading-relaxed opacity-80">
+              Prepared for: {audit.client} · Prepared by: UiLab (Underwood Innovation Lab Pty Ltd)
+            </p>
+            <div className="mt-8 grid gap-px border border-ink/15 bg-ink/15 sm:grid-cols-3">
+              <Headline label="Investment" value={audit.proposalInvestment || "—"} accent />
+              <Headline label="Timeline" value={audit.proposalTimeline || "—"} />
+              <Headline label="Start date" value={formatDate(audit.proposalStartDate)} />
+            </div>
+            {audit.proposalScope ? (
+              <div className="mt-10">
+                <MonoLabel className="opacity-100">Scope of work</MonoLabel>
+                <ul className="mt-4 space-y-2">
+                  {audit.proposalScope
+                    .split("\n")
+                    .map((line) => line.trim())
+                    .filter(Boolean)
+                    .map((line, i) => (
+                      <li key={i} className="flex gap-2 text-sm leading-relaxed opacity-80">
+                        <span className="text-summer">▸</span> {line}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            ) : null}
+            <div className="mt-14 border-t border-ink/20 pt-8">
+              <p className="max-w-2xl text-sm leading-relaxed opacity-70">
+                By signing below, both parties agree to the scope of work, investment, and
+                timeline outlined in this proposal.
+              </p>
+              <div className="mt-10 grid gap-10 sm:grid-cols-2">
+                <SignatureBlock heading={`For ${audit.client || "the client"}`} />
+                <SignatureBlock heading="For Underwood Innovation Lab Pty Ltd" />
+              </div>
+            </div>
           </Section>
         ) : null}
 
@@ -233,6 +461,19 @@ function Headline({ label, value, accent }: { label: string; value: string; acce
     <div className={accent ? "bg-summer p-6 text-primary-foreground" : "bg-paper p-6"}>
       <MonoLabel className={accent ? "opacity-80" : undefined}>{label}</MonoLabel>
       <p className="mt-3 text-3xl leading-none font-bold tracking-[-0.03em]">{value}</p>
+    </div>
+  );
+}
+
+function SignatureBlock({ heading }: { heading: string }) {
+  return (
+    <div className="avoid-break">
+      <MonoLabel className="opacity-100">{heading}</MonoLabel>
+      <div className="mt-8 space-y-6 text-sm">
+        <div className="border-b border-ink/30 pb-1">Signature:</div>
+        <div className="border-b border-ink/30 pb-1">Name:</div>
+        <div className="border-b border-ink/30 pb-1">Date:</div>
+      </div>
     </div>
   );
 }

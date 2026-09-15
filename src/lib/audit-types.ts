@@ -2,6 +2,9 @@ export type AuditStatus = "draft" | "in-review" | "client-ready";
 
 export type Severity = "low" | "moderate" | "high" | "critical";
 export type Scale = "low" | "medium" | "high";
+/** 1-3 rating used for Complexity / Timeline / Pricing, matching the Automation Power Session format. */
+export type Rating = 1 | 2 | 3;
+export type EngagementStage = "1.1" | "1.2" | "2" | "3" | "4";
 
 export interface Finding {
   id: string;
@@ -21,6 +24,9 @@ export interface Opportunity {
   hoursSavedPerYear: number;
   annualValue: number;
   horizon: string;
+  complexity: Rating;
+  timelineRating: Rating;
+  pricingRating: Rating;
 }
 
 export interface EvidencePhoto {
@@ -78,17 +84,35 @@ export interface Audit {
   longitude?: number | null;
   locationLabel?: string;
   capturedAt?: string | null;
+  /** Which stage of the UiLab engagement model the client is currently at. */
+  engagementStage: EngagementStage;
+  /** Proposal for the next paid stage — printed with blank signature lines, not e-signed. */
+  proposalScope: string;
+  proposalInvestment: string;
+  proposalTimeline: string;
+  proposalStartDate: string;
   updatedAt: string;
 }
 
 export const SEVERITIES: Severity[] = ["low", "moderate", "high", "critical"];
 export const SCALES: Scale[] = ["low", "medium", "high"];
 export const STATUSES: AuditStatus[] = ["draft", "in-review", "client-ready"];
+export const RATINGS: Rating[] = [1, 2, 3];
 
 export const STATUS_LABEL: Record<AuditStatus, string> = {
   draft: "Draft",
   "in-review": "In review",
   "client-ready": "Client ready",
+};
+
+export const ENGAGEMENT_STAGES: EngagementStage[] = ["1.1", "1.2", "2", "3", "4"];
+
+export const ENGAGEMENT_STAGE_LABEL: Record<EngagementStage, string> = {
+  "1.1": "Scope definition & process analysis",
+  "1.2": "Feasibility, vendor selection & project plan",
+  "2": "Procurement, design validation & factory acceptance",
+  "3": "Delivery, commissioning & handover",
+  "4": "Ongoing support & growth",
 };
 
 export function uid(prefix = "id") {

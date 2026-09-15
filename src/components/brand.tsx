@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { Audit, AuditStatus, Scale, Severity } from "@/lib/audit-types";
+import type { Audit, AuditStatus, Rating, Scale, Severity } from "@/lib/audit-types";
 import { STATUS_LABEL } from "@/lib/audit-types";
 
 export function UiLabWordmark({
@@ -79,6 +79,23 @@ export function ScaleChip({ value, label }: { value: Scale; label: string }) {
           />
         ))}
       </span>
+    </span>
+  );
+}
+
+export function RatingChip({ value, label }: { value: Rating; label: string }) {
+  return (
+    <span className="label-mono inline-flex items-center gap-1.5 opacity-80">
+      {label}
+      <span className="flex gap-0.5">
+        {([1, 2, 3] as Rating[]).map((n) => (
+          <span
+            key={n}
+            className={cn("h-2 w-2 rounded-full border border-current", n <= value ? "bg-current" : "")}
+          />
+        ))}
+      </span>
+      <span className="tabular-nums">{value}/3</span>
     </span>
   );
 }

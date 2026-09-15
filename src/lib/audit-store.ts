@@ -49,6 +49,11 @@ export function createBlankAudit(profileId: string | null = null, auditor = ""):
     longitude: null,
     locationLabel: "",
     capturedAt: null,
+    engagementStage: "1.1",
+    proposalScope: "",
+    proposalInvestment: "",
+    proposalTimeline: "",
+    proposalStartDate: "",
     updatedAt: new Date().toISOString(),
   };
 }

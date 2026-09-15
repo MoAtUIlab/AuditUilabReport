@@ -85,6 +85,11 @@ function rowToAudit(row: any, signedUrls: Record<string, string>): Audit {
     longitude: row.longitude ?? null,
     locationLabel: row.location_label ?? "",
     capturedAt: row.captured_at ?? null,
+    engagementStage: row.engagement_stage ?? "1.1",
+    proposalScope: row.proposal_scope ?? "",
+    proposalInvestment: row.proposal_investment ?? "",
+    proposalTimeline: row.proposal_timeline ?? "",
+    proposalStartDate: row.proposal_start_date ?? "",
     updatedAt: row.updated_at ?? "",
   };
 }

@@ -36,6 +36,9 @@ import { uploadEvidencePhoto } from "@/lib/audit.functions";
 import { draftExecutiveSummary } from "@/lib/ai.functions";
 import { gateBeforeLoad } from "@/lib/gate";
 import {
+  ENGAGEMENT_STAGES,
+  ENGAGEMENT_STAGE_LABEL,
+  RATINGS,
   SCALES,
   SEVERITIES,
   STATUSES,
@@ -46,6 +49,7 @@ import {
   totalValue,
   uid,
   type Audit,
+  type Rating,
   type Scale,
   type Severity,
 } from "@/lib/audit-types";
@@ -162,6 +166,7 @@ function AuditEditor() {
           <TabsTrigger value="opportunities">Opportunities</TabsTrigger>
           <TabsTrigger value="evidence">Evidence</TabsTrigger>
           <TabsTrigger value="roadmap">Roadmap</TabsTrigger>
+          <TabsTrigger value="proposal">Proposal</TabsTrigger>
           <TabsTrigger value="deliver">Deliver</TabsTrigger>
         </TabsList>
 
@@ -490,6 +495,20 @@ function AuditEditor() {
                       </Field>
                     </div>
                   </div>
+                  <div className="mt-4 grid gap-4 border-t pt-4 md:grid-cols-3">
+                    <Field label="Complexity">
+                      <PickRating value={o.complexity} onChange={(v) => set({ complexity: v })} />
+                    </Field>
+                    <Field label="Timeline">
+                      <PickRating
+                        value={o.timelineRating}
+                        onChange={(v) => set({ timelineRating: v })}
+                      />
+                    </Field>
+                    <Field label="Pricing">
+                      <PickRating value={o.pricingRating} onChange={(v) => set({ pricingRating: v })} />
+                    </Field>
+                  </div>
                 </div>
               );
             })}
@@ -510,6 +529,9 @@ function AuditEditor() {
                     hoursSavedPerYear: 0,
                     annualValue: 0,
                     horizon: "0–3 months",
+                    complexity: 1,
+                    timelineRating: 1,
+                    pricingRating: 1,
                   },
                 ],
               })
@@ -598,7 +620,26 @@ function AuditEditor() {
 
         {/* ---------------- Roadmap ---------------- */}
         <TabsContent value="roadmap" className="mt-8">
-          <div className="space-y-4">
+          <div className="border bg-card p-6">
+            <MonoLabel className="opacity-100">Engagement stage</MonoLabel>
+            <p className="mt-1 mb-4 text-sm opacity-70">
+              Which stage of the UiLab engagement model is the client at right now?
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {ENGAGEMENT_STAGES.map((s) => (
+                <Button
+                  key={s}
+                  type="button"
+                  variant={draft.engagementStage === s ? "default" : "outline"}
+                  className="label-mono"
+                  onClick={() => patch({ engagementStage: s })}
+                >
+                  Stage {s} — {ENGAGEMENT_STAGE_LABEL[s]}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <div className="mt-8 space-y-4">
             {draft.recommendations.map((r, i) => {
               const set = (partial: Partial<typeof r>) => {
                 const recommendations = [...draft.recommendations];
@@ -656,6 +697,45 @@ function AuditEditor() {
           </Button>
         </TabsContent>
 
+        {/* ---------------- Proposal ---------------- */}
+        <TabsContent value="proposal" className="mt-8">
+          <p className="mb-6 max-w-2xl text-sm opacity-70">
+            This becomes the priced proposal at the end of the client dossier, printed with blank
+            signature lines for both parties to sign by hand — nothing here is e-signed.
+          </p>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Field label="Investment">
+              <Input
+                placeholder="$27,300 + GST"
+                value={draft.proposalInvestment}
+                onChange={(e) => patch({ proposalInvestment: e.target.value })}
+              />
+            </Field>
+            <Field label="Timeline">
+              <Input
+                placeholder="6 weeks"
+                value={draft.proposalTimeline}
+                onChange={(e) => patch({ proposalTimeline: e.target.value })}
+              />
+            </Field>
+            <Field label="Start date">
+              <Input
+                type="date"
+                value={draft.proposalStartDate}
+                onChange={(e) => patch({ proposalStartDate: e.target.value })}
+              />
+            </Field>
+            <Field label="Scope of work" className="lg:col-span-2">
+              <Textarea
+                rows={6}
+                placeholder={"One line per item, e.g.\nFeasibility studies\nIntegrator engagement\nProcess sequencing"}
+                value={draft.proposalScope}
+                onChange={(e) => patch({ proposalScope: e.target.value })}
+              />
+            </Field>
+          </div>
+        </TabsContent>
+
         {/* ---------------- Deliver ---------------- */}
         <TabsContent value="deliver" className="mt-8">
           <DeliverPanel audit={draft} />
@@ -694,6 +774,24 @@ function PickScale({ value, onChange }: { value: Scale; onChange: (v: Scale) => 
           onClick={() => onChange(s)}
         >
           {s}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+function PickRating({ value, onChange }: { value: Rating; onChange: (v: Rating) => void }) {
+  return (
+    <div className="flex gap-2">
+      {RATINGS.map((r) => (
+        <Button
+          key={r}
+          type="button"
+          variant={value === r ? "default" : "outline"}
+          className="label-mono flex-1"
+          onClick={() => onChange(r)}
+        >
+          {r}/3
         </Button>
       ))}
     </div>

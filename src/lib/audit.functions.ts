@@ -32,6 +32,11 @@ function rowToAudit(row: any, signedUrls: Record<string, string>): Audit {
     longitude: row.longitude ?? null,
     locationLabel: row.location_label ?? "",
     capturedAt: row.captured_at ?? null,
+    engagementStage: row.engagement_stage ?? "1.1",
+    proposalScope: row.proposal_scope ?? "",
+    proposalInvestment: row.proposal_investment ?? "",
+    proposalTimeline: row.proposal_timeline ?? "",
+    proposalStartDate: row.proposal_start_date ?? "",
     updatedAt: row.updated_at ?? "",
   };
 }
@@ -59,6 +64,11 @@ function auditToRow(audit: Audit) {
     longitude: audit.longitude ?? null,
     location_label: audit.locationLabel ?? "",
     captured_at: audit.capturedAt ?? null,
+    engagement_stage: audit.engagementStage ?? "1.1",
+    proposal_scope: audit.proposalScope ?? "",
+    proposal_investment: audit.proposalInvestment ?? "",
+    proposal_timeline: audit.proposalTimeline ?? "",
+    proposal_start_date: audit.proposalStartDate ?? "",
   };
 }
 
@@ -127,6 +137,11 @@ const auditSchema = z.object({
   longitude: z.number().nullable().optional(),
   locationLabel: z.string().optional(),
   capturedAt: z.string().nullable().optional(),
+  engagementStage: z.enum(["1.1", "1.2", "2", "3", "4"]).optional(),
+  proposalScope: z.string().optional(),
+  proposalInvestment: z.string().optional(),
+  proposalTimeline: z.string().optional(),
+  proposalStartDate: z.string().optional(),
   updatedAt: z.string(),
 });
 
