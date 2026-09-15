@@ -1,0 +1,105 @@
+Yes, giving these architectural flowcharts to Claude Code is very valuable. When Claude Code can see the exact end-to-end data lifecycle and UI state transitions, it avoids writing throwaway code or disconnecting the audit state from the print view.
+
+Here is the clean, formatted Markdown snippet ready to paste straight into Claude Code or add to your `CLAUDE.md` file:
+
+```markdown
+### SYSTEM ARCHITECTURE & DATA FLOW SPECIFICATION
+
+
+```
+
+┌─────────────────────────────────────────────────────────────┐
+│ 1. ON-SITE WALKTHROUGH (Engineer at Facility)               │
+│    • Client: e.g., Holmwood Highgate / Halalhop             │
+│    • Walk the floor & log observations                      │
+│    • Snap visual evidence (bottlenecks, bays, pinch points) │
+└──────────────────────────────┬──────────────────────────────┘
+│
+▼
+┌─────────────────────────────────────────────────────────────┐
+│ 2. UILAB BASE AUDIT APP (Internal Entry)                    │
+│    • Metadata: Headcount, auditor, facility type            │
+│    • Findings: Area tags, severity ratings, notes           │
+│    • Matrix: Impact vs. Effort (auto-calculates Quick Wins) │
+│    • Metrics: Hours/yr saved & annual value ($ AUD)         │
+└──────────────────────────────┬──────────────────────────────┘
+│
+▼
+┌─────────────────────────────────────────────────────────────┐
+│ 3. ACTIVE AUDIT STATE (React / LocalStorage / Supabase)     │
+│    • Consolidates live values & roadmap sequencing          │
+│    • Prepares data payload for dossier rendering            │
+└───────────────┬─────────────────────────────┬───────────────┘
+│                             │
+▼                             ▼
+┌──────────────────────────────┐ ┌────────────────────────────┐
+│ 4A. INTERNAL DASHBOARD       │ │ 4B. CLIENT DOSSIER VIEW    │
+│  • Maturity score (0–5)      │ │  • UiLab Base branded view │
+│  • Detailed findings matrix  │ │  • Executive summary       │
+│  • Edit, re-order, prioritize│ │  • Visual evidence cards   │
+└──────────────────────────────┘ └─────────────┬──────────────┘
+│
+▼
+┌───────────────────────────────────┐
+│ 5. EXPORT / SAVE AS PDF           │
+│    • Trigger: `window.print()`    │
+│    • CSS `@media print` engine:   │
+│      - Strips nav, tabs & badges  │
+│      - Locks A4 layout & breaks   │
+│      - Preserves UiLab dark base  │
+└────────────────┬──────────────────┘
+│
+▼
+┌───────────────────────────────────┐
+│ 6. FINAL DELIVERABLE              │
+│    • Print-ready executive PDF    │
+│    • Sent to client leadership /  │
+│      Logan City Council report    │
+└───────────────────────────────────┘
+
+```
+
+---
+
+### CI/CD & REPO PIPELINE
+
+
+```
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ 1. LOCAL REPO / CLAUDE CODE CLI                                        │
+│    • Files: `src/components/ClientDossier.tsx`, `index.css`, `App.tsx` │
+│    • Configuration: `CLAUDE.md` locks fonts and color tokens           │
+│    • Terminal command: `git commit -am "feat: add client dossier pdf"` │
+│    • Terminal command: `git push origin main`                          │
+└──────────────────────────────────┬─────────────────────────────────────┘
+│ Push to remote
+▼
+┌────────────────────────────────────────────────────────────────────────┐
+│ 2. GITHUB REPOSITORY (`uilab-base-walkthrough`)                        │
+│    • Central source code store                                         │
+│    • Webhook notification triggers on every commit                     │
+└──────────────────────────────────┬─────────────────────────────────────┘
+│ Automated webhook
+▼
+┌────────────────────────────────────────────────────────────────────────┐
+│ 3. VERCEL / NETLIFY DEPLOYMENT PIPELINE                                │
+│    • Auto-detects push on `main` branch                                │
+│    • Executes: `npm run build` (compiles Vite + Tailwind + React)      │
+│    • Generates production build in < 60 seconds                        │
+└──────────────────────────────────┬─────────────────────────────────────┘
+│ Live build ready
+▼
+┌────────────────────────────────────────────────────────────────────────┐
+│ 4. LIVE PRODUCTION APP (`uilab-base.vercel.app`)                       │
+│    • Field engineers enter audit data (Halalhop / Holmwood Highgate)   │
+│    • User taps "Client Dossier" -> clicks "Save as PDF / Print"        │
+│    • Browser executes `window.print()`                                 │
+│    • Result: Clean A4 PDF with UiLab brand identity                    │
+└────────────────────────────────────────────────────────────────────────┘
+
+```
+
+```
+
+You can copy that block directly into your instructions to Claude Code so it understands the full system boundaries before modifying files.

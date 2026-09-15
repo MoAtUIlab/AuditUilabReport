@@ -1,0 +1,230 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * UiLab design system — derived from UiLab Brand Guidelines v1090725.
+ * Core rule: the base (background) colour is always the darker tone,
+ * the foreground (text, logo, graphics) is the lighter tone.
+ *
+ * Sunset #4C0027 · Summer #FF6325 · Sun #FFCD0E · Bone #F5F1EA
+ * Type: PP Neue Montreal (Inter Tight fallback) + Roboto Mono for labels.
+ */
+
+@theme inline {
+  --font-sans:
+    "Inter Tight", "PP Neue Montreal", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Roboto Mono", ui-monospace, monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-sunset: var(--sunset);
+  --color-sunset-deep: var(--sunset-deep);
+  --color-summer: var(--summer);
+  --color-sun: var(--sun);
+  --color-bone: var(--bone);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-hairline: var(--hairline);
+}
+
+:root {
+  --radius: 0.25rem;
+
+  --sunset: #4c0027;
+  --sunset-deep: #2b0016;
+  --summer: #ff6325;
+  --sun: #ffcd0e;
+  --bone: #f5f1ea;
+  --paper: #ffffff;
+  --ink: #1e0010;
+  --hairline: #5d1234;
+
+  --background: #1e0010;
+  --foreground: #f5f1ea;
+  --card: #2b0016;
+  --card-foreground: #f5f1ea;
+  --popover: #2b0016;
+  --popover-foreground: #f5f1ea;
+  --primary: #ff6325;
+  --primary-foreground: #2b0016;
+  --secondary: #3b001f;
+  --secondary-foreground: #f5f1ea;
+  --muted: #3b001f;
+  --muted-foreground: #c3a5b1;
+  --accent: #ffcd0e;
+  --accent-foreground: #2b0016;
+  --destructive: #ff4d4d;
+  --destructive-foreground: #2b0016;
+  --border: #5d1234;
+  --input: #5d1234;
+  --ring: #ff6325;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: -0.02em;
+  }
+}
+
+@utility label-mono {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  line-height: 1.1;
+}
+
+/* Underline treatment: skip-ink, stroke matched to type weight. */
+@utility brand-underline {
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.12em;
+  text-decoration-skip-ink: all;
+}
+
+/* ---------- Client-ready report surface (light base for print) ---------- */
+
+.report-surface {
+  background-color: var(--paper);
+  color: var(--ink);
+}
+
+.report-surface .report-hairline {
+  border-color: rgba(30, 0, 16, 0.16);
+}
+
+.report-page {
+  width: 100%;
+  max-width: 210mm;
+  margin-inline: auto;
+}
+
+@media print {
+  /* Zero page margins suppress the browser's own URL/date header and footer. */
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+  }
+
+  /* Force brand colours (burgundy, orange) to print even with
+     "Background graphics" left unchecked in the print dialog. */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .report-page {
+    max-width: none;
+    margin: 0;
+  }
+
+  /* Page margins are applied to the content instead of @page. */
+  .report-surface {
+    padding: 10mm 6mm 16mm;
+  }
+
+  .print-break {
+    break-before: page;
+  }
+
+  .avoid-break {
+    break-inside: avoid;
+  }
+
+  /* Running footer on every printed page */
+  .print-running-footer {
+    display: block !important;
+    position: fixed;
+    bottom: 4mm;
+    left: 0;
+    right: 0;
+    padding-top: 2mm;
+    border-top: 0.3mm solid rgba(30, 0, 16, 0.2);
+    font-family: var(--font-mono);
+    font-size: 8pt;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(30, 0, 16, 0.6);
+  }
+
+  .report-page section {
+    break-inside: auto;
+  }
+
+  .report-page figure,
+  .report-page table,
+  .report-page dl {
+    break-inside: avoid;
+  }
+}
+
+@media screen {
+  .print-running-footer {
+    display: none;
+  }
+}
+
+/* Hide Lovable preview/editor badges when printing or saving to PDF */
+@media print {
+  div[id*="lovable"],
+  div[class*="lovable"],
+  a[href*="lovable.dev"],
+  button[aria-label*="Lovable"],
+  #lovable-badge {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}

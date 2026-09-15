@@ -1,0 +1,88 @@
+UiLab Base Walkthrough — App Overview
+What it is
+UiLab Base Walkthrough is an internal field-audit and client-reporting web app for UiLab, an Australian applied-AI consultancy. It is a Progressive Web App (PWA) that runs in a browser and can be installed on a phone home screen.
+
+The app lets a small team visit industrial/manufacturing sites, capture what they see, and turn that into a polished, client-ready executive dossier.
+
+Why it exists
+Before this app, walkthrough notes were scattered, evidence photos were pasted as links, reports were rebuilt manually, and there was no shared view of which clients had read their reports.
+
+The app solves four problems:
+
+On-site capture — record findings, opportunities, photos, and GPS location while still at the client site, even without internet.
+Structured output — turn rough notes into a consistent audit format (maturity scores, findings, opportunities, roadmap).
+Client delivery — send either a PDF or a private landing page with a PIN.
+Follow-up intelligence — see who opened the report, who printed it, and who needs chasing.
+Who uses it
+Internal team — anyone with the single shared site password. No individual sign-ups.
+Team profiles — named profiles (e.g. Ash, Mo) can be added; each audit is attributed to a profile so you can see who ran which walkthrough.
+Clients — receive a private link and 4-digit PIN to view their report. They cannot edit anything.
+Core workflow
+Arrive on site — open the PWA, start a new walkthrough.
+Pin location — capture GPS coordinates and a location label.
+Paste notes or capture live — dump rough notes, voice transcripts, or bullet points; AI structures them into a draft audit. Or fill the audit manually.
+Add evidence — take or upload photos; they are stored in cloud file storage and shown in the report.
+Score and prioritise — rate automation maturity, severity of findings, and effort/impact of opportunities.
+Review the dossier — a print-optimised report is generated with brand colours, cover page, running headers/footers, and page-break control.
+Deliver to client — choose one of two paths:
+PDF download — save to device and email manually (not tracked).
+Landing page + 4-digit PIN — client opens in browser, can print/download/share; every open and print is logged.
+Follow up — dashboard shows opens, stale links, and reminders to follow up, with Yes/No outcome tracking.
+What is inside the app
+Pages/routes
+/unlock — shared password gate.
+/ — dashboard with walkthrough register, team section, engagement metrics, and follow-ups.
+/audits/$id — full audit editor with tabs for intake, maturity, findings, opportunities, evidence, roadmap, and deliver.
+/audits/$id/report — internal preview of the client dossier, with Print/PDF and share controls.
+/profiles/$profileId — profile page showing all audits attributed to that team member.
+/r/$token — public client report landing page, PIN-protected, no search indexing.
+Key features
+Shared password auth — one password unlocks the whole site; no per-user accounts.
+Team profiles — add/remove profiles; audits can be assigned to a profile.
+AI note-to-audit — paste rough notes; AI drafts client, site, industry, headcount, executive summary, scope, maturity scores, findings, opportunities, and recommendations.
+AI executive summary — refresh the summary from the filled-in audit.
+Autosave — edits save automatically with a status indicator.
+Drag-to-reorder — findings, opportunities, and recommendations can be reordered.
+Photo evidence — camera/file upload, signed URLs, gallery view, captions, area tags.
+GPS capture — latitude, longitude, location label, timestamp.
+Offline support — audits and photos queue on the device when there is no signal; they sync when connection returns.
+Print/PDF optimisation — brand colours preserved, no browser URL/footer, page-break control, running header/footer.
+Client delivery — two branches: PDF download or PIN-protected landing page.
+Engagement metrics — opens, prints, open rate, average time to open, stale links, weekly chart, conversion funnel.
+Follow-up reminders — Yes/No confirmation with outcome notes (meeting booked, progressed, no response, not interested, other).
+PWA — installable on phone home screen, works offline, branded icon.
+Data model
+profiles — team members.
+audits — the main walkthrough record, including JSON arrays for maturity, findings, opportunities, photos, recommendations, plus GPS fields.
+audit_shares — client share links with token, 4-digit PIN, expiry, revocation.
+report_views — every open, print, and download event on a client link.
+follow_ups — reminders created from report activity, with status and outcome.
+Brand/design
+Colours: Sunset burgundy #4C0027, Summer orange #FF6325, Sun yellow #FFCD0E, Bone #F5F1EA.
+Rule: background is always darker than foreground.
+Fonts: Inter Tight / PP Neue Montreal for headings, Roboto Mono for labels.
+Style: dark, minimal, Apple-like.
+Tech stack
+Framework: TanStack Start v1 (React 19, full-stack, SSR/SSG, Vite 7).
+Styling: Tailwind CSS v4.
+Backend/database: Lovable Cloud (Supabase-managed).
+Storage: private evidence-photos bucket with signed URLs.
+AI: Lovable AI Gateway, model google/gemini-3.8-flash.
+PWA: vite-plugin-pwa, service worker with NetworkFirst navigation and asset caching.
+Auth: shared site password via encrypted cookie session.
+Outcomes and benefits
+Consistency — every walkthrough produces the same structured dossier.
+Speed — AI turns rough notes into a first draft in seconds.
+Accountability — audits attributed to team profiles; metrics show who is following up.
+Client experience — professional, branded report with a private, easy-to-share link.
+Sales intelligence — know which clients engaged, which reports went stale, and where deals progressed.
+Remote-site reliability — capture data offline; sync when back in signal.
+Current state
+Phase 1 and Phase 2 are complete.
+Email alerts when a client opens a report are blocked until a sending email domain is configured.
+Google Analytics for public report pages was planned but the connector request was rejected; internal database metrics remain the source of truth.
+Important notes for export
+The app expects a SITE_PASSWORD secret and a SESSION_SECRET for the shared-password gate.
+The AI feature requires a LOVABLE_API_KEY.
+Photo storage uses a private bucket; signed URLs expire after 6 hours.
+The PWA service worker only registers in production, not in Lovable preview hosts.

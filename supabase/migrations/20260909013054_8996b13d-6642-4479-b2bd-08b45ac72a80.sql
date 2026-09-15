@@ -1,0 +1,2 @@
+CREATE POLICY "No direct access to audits" ON public.audits FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
+CREATE POLICY "No direct access to profiles" ON public.profiles FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
