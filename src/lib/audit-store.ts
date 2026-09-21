@@ -61,6 +61,31 @@ export function createBlankAudit(profileId: string | null = null, auditor = ""):
   };
 }
 
+/**
+ * Records queued locally (or saved) before a field was added to the schema come back
+ * without it — e.g. a walkthrough drafted before `costPhases`/`introduction` existed.
+ * Every array/string field the editor reaches into with `.map()` or string ops must be
+ * backfilled here, or an old record crashes the editor the moment it loads.
+ */
+function normalizeAudit(audit: Audit): Audit {
+  return {
+    ...audit,
+    introduction: audit.introduction ?? "",
+    growthGoals: audit.growthGoals ?? "",
+    maturity: audit.maturity ?? [],
+    findings: audit.findings ?? [],
+    opportunities: audit.opportunities ?? [],
+    photos: audit.photos ?? [],
+    recommendations: audit.recommendations ?? [],
+    costPhases: audit.costPhases ?? [],
+    engagementStage: audit.engagementStage ?? "1.1",
+    proposalScope: audit.proposalScope ?? "",
+    proposalInvestment: audit.proposalInvestment ?? "",
+    proposalTimeline: audit.proposalTimeline ?? "",
+    proposalStartDate: audit.proposalStartDate ?? "",
+  };
+}
+
 export function useAudits() {
   const queryClient = useQueryClient();
   const fetchAudits = useServerFn(listAudits);
@@ -141,7 +166,7 @@ export function useAudits() {
     [deleteFn, queryClient],
   );
 
-  const audits = mergedAudits(isError ? undefined : (data as Audit[] | undefined));
+  const audits = mergedAudits(isError ? undefined : (data as Audit[] | undefined)).map(normalizeAudit);
 
   return { audits, ready: !isPending, offline: isError, pending, sync, saveAudit, removeAudit };
 }
@@ -162,5 +187,6 @@ export function useProfiles() {
 }
 
 export async function fetchAuditById(id: string): Promise<Audit | null> {
-  return getAudit({ data: { id } });
+  const audit = await getAudit({ data: { id } });
+  return audit ? normalizeAudit(audit) : null;
 }
