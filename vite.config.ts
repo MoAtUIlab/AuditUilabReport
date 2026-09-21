@@ -21,13 +21,15 @@ export default defineConfig({
         filename: "sw.js",
         devOptions: { enabled: false },
         manifest: false,
-        // TanStack Start's client build writes to dist/client, not Vite's top-level
-        // outDir ("dist"). Without this, vite-plugin-pwa scans the wrong directory —
-        // it finds 0 files to precache and drops sw.js where Nitro never picks it up
-        // for the Vercel output, so /sw.js 404s in production.
-        outDir: "dist/client",
+        // Nitro's Vercel preset writes the client build straight into the Vercel
+        // Build Output API directory (.vercel/output/static) — there is no plain
+        // "dist" folder to speak of. Without this, vite-plugin-pwa scans Vite's
+        // default outDir, finds 0 files to precache, and drops sw.js somewhere
+        // Vercel never serves, so /sw.js 404s in production. This ties the PWA
+        // build to the Vercel target specifically (matches the current deploy).
+        outDir: ".vercel/output/static",
         workbox: {
-          globDirectory: "dist/client",
+          globDirectory: ".vercel/output/static",
           navigateFallback: "/",
           navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//, /^\/_serverFn\//],
           globPatterns: ["**/*.{js,css,ico,png,svg,woff2}"],
