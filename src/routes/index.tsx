@@ -47,7 +47,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Dashboard() {
-  const { audits, ready, saveAudit, pending } = useAudits();
+  const { audits, ready, saveAudit, pending, offline } = useAudits();
   const { profiles, ready: profilesReady } = useProfiles();
   const [selectedProfileId, setSelectedProfileId] = useState("");
   const navigate = useNavigate();
@@ -68,7 +68,11 @@ function Dashboard() {
       title="Every walkthrough, scored and ready to hand to the client."
       actions={
         <>
-          {pending > 0 ? (
+          {offline ? (
+            <span className="label-mono flex items-center gap-2 border border-destructive px-3 py-2 text-destructive">
+              <CloudOff className="size-3.5" /> Can't reach the server — showing cached data
+            </span>
+          ) : pending > 0 ? (
             <span className="label-mono flex items-center gap-2 border border-summer px-3 py-2 text-summer">
               <CloudOff className="size-3.5" /> {pending} waiting to sync
             </span>

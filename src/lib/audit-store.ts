@@ -101,20 +101,33 @@ export function useAudits() {
     return () => window.removeEventListener("online", onOnline);
   }, [sync]);
 
+  /**
+   * Returns whether the audit actually reached the server. On any failure — offline
+   * or a real server error — the edit is queued on the device and retried later, but
+   * callers must check `synced` rather than assume a resolved promise means "saved":
+   * silently reporting "Saved" for a queued-but-not-yet-synced edit previously caused
+   * a real data-loss incident (a stale queued copy overwrote a fresher server edit).
+   */
   const saveAudit = useCallback(
-    async (audit: Audit) => {
+    async (audit: Audit): Promise<{ synced: boolean; offline: boolean }> => {
       const stamped = { ...audit, updatedAt: new Date().toISOString() };
-      try {
-        if (typeof navigator !== "undefined" && navigator.onLine === false)
-          throw new Error("offline");
-        await saveFn({ data: stamped });
-        await queryClient.invalidateQueries({ queryKey: ["audits"] });
-      } catch (error) {
-        // No signal on site: hold it on the device and push it later.
+      const offlineNow = typeof navigator !== "undefined" && navigator.onLine === false;
+      if (offlineNow) {
         queueAudit(stamped);
         setPending(pendingAudits().length);
-        const offline = typeof navigator !== "undefined" && navigator.onLine === false;
-        if (!offline) console.error(error);
+        return { synced: false, offline: true };
+      }
+      try {
+        await saveFn({ data: stamped });
+        await queryClient.invalidateQueries({ queryKey: ["audits"] });
+        return { synced: true, offline: false };
+      } catch (error) {
+        // Real error while online: hold it on the device and push it later, but tell
+        // the caller it hasn't actually landed on the server yet.
+        queueAudit(stamped);
+        setPending(pendingAudits().length);
+        console.error(error);
+        return { synced: false, offline: false };
       }
     },
     [saveFn, queryClient],

@@ -74,7 +74,7 @@ export const Route = createFileRoute("/audits/$id/")({
   component: AuditEditor,
 });
 
-type SaveState = "saved" | "saving" | "unsaved";
+type SaveState = "saved" | "saving" | "unsaved" | "queued";
 
 function AuditEditor() {
   const { id } = Route.useParams();
@@ -115,17 +115,27 @@ function AuditEditor() {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
       setSaveState("saving");
-      saveAudit(next)
-        .then(() => setSaveState("saved"))
-        .catch(() => {
-          setSaveState("unsaved");
-          toast.error("Could not save — check your connection");
-        });
+      void saveAudit(next).then(({ synced, offline }) => {
+        if (synced) {
+          setSaveState("saved");
+        } else if (offline) {
+          setSaveState("queued");
+        } else {
+          setSaveState("queued");
+          toast.error("Could not reach the server — your edit is saved on this device and will retry.");
+        }
+      });
     }, 800);
   };
 
   const saveLabel =
-    saveState === "saving" ? "Saving…" : saveState === "unsaved" ? "Unsaved changes" : "Saved";
+    saveState === "saving"
+      ? "Saving…"
+      : saveState === "unsaved"
+        ? "Unsaved changes"
+        : saveState === "queued"
+          ? "Saved on this device — will sync"
+          : "Saved";
 
   return (
     <AppShell
