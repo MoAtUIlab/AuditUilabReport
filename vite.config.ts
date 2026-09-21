@@ -40,13 +40,27 @@ export default defineConfig({
               options: { cacheName: "html-navigations", networkTimeoutSeconds: 5 },
             },
             {
+              // Only precache-friendly static assets (scripts, styles, images,
+              // fonts) — a bare "not a document" check also matches fetch/XHR
+              // calls to _serverFn (audits, share links, everything data-driven),
+              // which would otherwise get served stale from cache instead of the
+              // network and silently break the app with outdated data.
               urlPattern: ({ url, request }) =>
-                url.origin === self.location.origin && request.destination !== "document",
+                url.origin === self.location.origin &&
+                ["script", "style", "image", "font"].includes(request.destination),
               handler: "CacheFirst",
               options: {
-                cacheName: "app-assets",
+                // Renamed from "app-assets": the previous ruleset briefly cached
+                // _serverFn responses too, so any device that loaded the SW in
+                // that window needs a clean cache rather than reusing poisoned
+                // entries for up to their 30-day expiration.
+                cacheName: "app-assets-v2",
                 expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
               },
+            },
+            {
+              urlPattern: ({ url }) => url.pathname.startsWith("/_serverFn/"),
+              handler: "NetworkOnly",
             },
           ],
         },
