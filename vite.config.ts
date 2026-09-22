@@ -29,6 +29,13 @@ export default defineConfig({
         // build to the Vercel target specifically (matches the current deploy).
         outDir: ".vercel/output/static",
         workbox: {
+          // A phone PWA is rarely "closed" (just backgrounded), so without these an
+          // updated SW installs but never activates — it waits for every open tab/app
+          // instance to close first. That's why phone and laptop can silently drift:
+          // the laptop got a full reload/close at some point, the phone never did.
+          skipWaiting: true,
+          clientsClaim: true,
+          cleanupOutdatedCaches: true,
           globDirectory: ".vercel/output/static",
           navigateFallback: "/",
           navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//, /^\/_serverFn\//],

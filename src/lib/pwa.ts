@@ -28,6 +28,16 @@ export function registerServiceWorker() {
     void unregisterApp();
     return;
   }
+  // With skipWaiting + clientsClaim, a new SW can take control mid-session (e.g. a
+  // phone PWA that's never fully closed). Reload once so the tab picks up the JS
+  // bundle that matches the now-active worker, instead of running stale code against
+  // a fetch layer that's already moved on.
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (reloaded) return;
+    reloaded = true;
+    window.location.reload();
+  });
   window.addEventListener("load", () => {
     void navigator.serviceWorker.register(SW_URL).catch(() => {});
   });
