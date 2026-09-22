@@ -167,10 +167,8 @@ export function DeliverPanel({ audit }: { audit: Audit }) {
             email. Nothing is tracked this way.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Button asChild className="label-mono">
-              <Link to="/audits/$id/report" params={{ id: audit.id }} hash="print">
-                <Download className="size-3.5" /> Download PDF
-              </Link>
+            <Button className="label-mono" onClick={printPreview}>
+              <Download className="size-3.5" /> Download PDF
             </Button>
             <Button asChild variant="outline" className="label-mono">
               <Link to="/audits/$id/report" params={{ id: audit.id }}>
