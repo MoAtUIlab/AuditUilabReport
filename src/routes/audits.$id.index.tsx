@@ -170,7 +170,6 @@ function AuditEditor() {
         <TabsList className="label-mono h-auto flex-wrap bg-card">
           <TabsTrigger value="intake">Intake</TabsTrigger>
           <TabsTrigger value="introduction">Introduction</TabsTrigger>
-          <TabsTrigger value="maturity">Maturity</TabsTrigger>
           <TabsTrigger value="findings">Findings</TabsTrigger>
           <TabsTrigger value="opportunities">Opportunities</TabsTrigger>
           <TabsTrigger value="timeline-cost">Timeline & Cost</TabsTrigger>
@@ -305,59 +304,59 @@ function AuditEditor() {
               />
             </Field>
           </div>
-        </TabsContent>
 
-        {/* ---------------- Maturity ---------------- */}
-        <TabsContent value="maturity" className="mt-8">
-          <div className="grid gap-10 lg:grid-cols-[1fr_1fr]">
-            <div className="space-y-8">
-              {draft.maturity.map((m, i) => (
-                <div key={m.id} className="border bg-card p-5">
-                  <div className="flex items-baseline justify-between gap-4">
-                    <Input
-                      value={m.label}
-                      className="max-w-xs border-0 px-0 text-base font-medium shadow-none focus-visible:ring-0"
-                      onChange={(e) => {
+          <div className="mt-12 border-t pt-8">
+            <MonoLabel className="opacity-100">Automation maturity</MonoLabel>
+            <div className="mt-6 grid gap-10 lg:grid-cols-[1fr_1fr]">
+              <div className="space-y-8">
+                {draft.maturity.map((m, i) => (
+                  <div key={m.id} className="border bg-card p-5">
+                    <div className="flex items-baseline justify-between gap-4">
+                      <Input
+                        value={m.label}
+                        className="max-w-xs border-0 px-0 text-base font-medium shadow-none focus-visible:ring-0"
+                        onChange={(e) => {
+                          const maturity = [...draft.maturity];
+                          maturity[i] = { ...m, label: e.target.value };
+                          patch({ maturity });
+                        }}
+                      />
+                      <span className="label-mono text-summer">{m.score.toFixed(1)} / 5</span>
+                    </div>
+                    <Slider
+                      className="mt-5"
+                      value={[m.score]}
+                      min={0}
+                      max={5}
+                      step={0.5}
+                      onValueChange={([v]) => {
                         const maturity = [...draft.maturity];
-                        maturity[i] = { ...m, label: e.target.value };
+                        maturity[i] = { ...m, score: v ?? 0 };
                         patch({ maturity });
                       }}
                     />
-                    <span className="label-mono text-summer">{m.score.toFixed(1)} / 5</span>
+                    <Textarea
+                      rows={2}
+                      className="mt-4"
+                      placeholder="Observation supporting this score"
+                      value={m.note}
+                      onChange={(e) => {
+                        const maturity = [...draft.maturity];
+                        maturity[i] = { ...m, note: e.target.value };
+                        patch({ maturity });
+                      }}
+                    />
                   </div>
-                  <Slider
-                    className="mt-5"
-                    value={[m.score]}
-                    min={0}
-                    max={5}
-                    step={0.5}
-                    onValueChange={([v]) => {
-                      const maturity = [...draft.maturity];
-                      maturity[i] = { ...m, score: v ?? 0 };
-                      patch({ maturity });
-                    }}
-                  />
-                  <Textarea
-                    rows={2}
-                    className="mt-4"
-                    placeholder="Observation supporting this score"
-                    value={m.note}
-                    onChange={(e) => {
-                      const maturity = [...draft.maturity];
-                      maturity[i] = { ...m, note: e.target.value };
-                      patch({ maturity });
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="border bg-card p-6 lg:sticky lg:top-8 lg:self-start">
-              <MonoLabel className="opacity-100">Maturity profile</MonoLabel>
-              <p className="mt-4 mb-6 text-5xl leading-none font-bold text-summer">
-                {maturityAverage(draft)}
-                <span className="text-lg opacity-50"> / 5</span>
-              </p>
-              <MaturityBars audit={draft} />
+                ))}
+              </div>
+              <div className="border bg-card p-6 lg:sticky lg:top-8 lg:self-start">
+                <MonoLabel className="opacity-100">Maturity profile</MonoLabel>
+                <p className="mt-4 mb-6 text-5xl leading-none font-bold text-summer">
+                  {maturityAverage(draft)}
+                  <span className="text-lg opacity-50"> / 5</span>
+                </p>
+                <MaturityBars audit={draft} />
+              </div>
             </div>
           </div>
         </TabsContent>

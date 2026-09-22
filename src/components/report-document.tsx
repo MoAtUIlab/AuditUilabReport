@@ -80,6 +80,12 @@ export function ReportDocument({ audit }: { audit: Audit }) {
 
   return (
     <>
+      {audit.status === "draft" ? (
+        <div className="report-draft-watermark">
+          <span>DRAFT</span>
+        </div>
+      ) : null}
+
       <article className="report-page pb-24">
         <header className="avoid-break bg-sunset px-8 py-14 text-bone">
           <div className="flex items-center justify-between">
@@ -95,11 +101,21 @@ export function ReportDocument({ audit }: { audit: Audit }) {
             <span className="brand-underline">{audit.site}</span>.
           </p>
           <dl className="mt-14 grid grid-cols-2 gap-6 border-t border-bone/25 pt-6 sm:grid-cols-4">
-            <Meta label="Walkthrough" value={formatDate(audit.walkthroughDate)} />
+            <Meta label="Site visit" value={formatDate(audit.walkthroughDate)} />
             <Meta label="Industry" value={audit.industry} />
             <Meta label="Site headcount" value={String(audit.headcount)} />
             <Meta label="Prepared by" value={audit.auditor} />
           </dl>
+          {audit.status === "client-ready" ? (
+            <div className="avoid-break mt-10 border border-bone/40 bg-ink/20 px-5 py-3">
+              <p className="label-mono text-sun opacity-100">Confidential</p>
+              <p className="mt-1 text-sm opacity-85">
+                This document is prepared exclusively for {audit.client || "the recipient"} and
+                contains commercially sensitive information. Please do not distribute without
+                UiLab's consent.
+              </p>
+            </div>
+          ) : null}
         </header>
 
         {audit.introduction || audit.growthGoals ? (
@@ -526,10 +542,8 @@ export function ReportDocument({ audit }: { audit: Audit }) {
 
       <div className="print-running-footer" aria-hidden>
         <div className="report-page flex justify-between px-8 pb-2">
-          <span>UiLab · Base Walkthrough</span>
-          <span>
-            {audit.client} · {audit.reference}
-          </span>
+          <span>Property of UiLab · Commercial in confidence</span>
+          <span>{audit.reference}</span>
         </div>
       </div>
     </>

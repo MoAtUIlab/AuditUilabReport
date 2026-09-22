@@ -141,6 +141,30 @@
   margin-inline: auto;
 }
 
+/* Draft watermark: visible on screen and in print alike (a draft link that
+   leaks should still read as unfinished). Repeats on every printed page via
+   `position: fixed`, same trick as .print-running-footer. Subtle by design —
+   it should read as a status marker, not compete with the content. */
+.report-draft-watermark {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.report-draft-watermark span {
+  font-family: var(--font-mono);
+  font-size: 120pt;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: rgba(30, 0, 16, 0.06);
+  transform: rotate(-32deg);
+  white-space: nowrap;
+}
+
 @media print {
   /* Zero page margins suppress the browser's own URL/date header and footer. */
   @page {

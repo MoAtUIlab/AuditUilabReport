@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,6 +11,7 @@ import {
   Loader2,
   Mail,
   Plus,
+  Printer,
   ShieldOff,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -44,6 +45,17 @@ export function DeliverPanel({ audit }: { audit: Audit }) {
   const [days, setDays] = useState("30");
   const [pin, setPin] = useState(randomPin);
   const [busy, setBusy] = useState(false);
+  const previewRef = useRef<HTMLIFrameElement>(null);
+
+  function printPreview() {
+    const win = previewRef.current?.contentWindow;
+    if (!win) {
+      toast.error("Preview hasn't finished loading yet — try again in a moment.");
+      return;
+    }
+    win.focus();
+    win.print();
+  }
 
   const links = useQuery({
     queryKey: ["shares", audit.id],
@@ -114,6 +126,30 @@ export function DeliverPanel({ audit }: { audit: Audit }) {
             <li className="opacity-70">2 · Saves straight to your device</li>
             <li className="opacity-70">3 · You email it yourself — nothing tracked</li>
           </ol>
+        </div>
+      </section>
+
+      {/* Full report preview + export */}
+      <section className="border border-border bg-card p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <MonoLabel className="opacity-100">Report preview</MonoLabel>
+            <p className="mt-2 max-w-xl text-sm opacity-70">
+              This is the exact document the client receives — cover, findings, opportunities,
+              roadmap, proposal and signature pages, laid out for A4.
+            </p>
+          </div>
+          <Button className="label-mono" onClick={printPreview}>
+            <Printer className="size-3.5" /> Export / Print PDF
+          </Button>
+        </div>
+        <div className="mt-6 h-[70vh] overflow-hidden border border-border bg-muted">
+          <iframe
+            ref={previewRef}
+            title="Client dossier preview"
+            src={`/audits/${audit.id}/report`}
+            className="h-full w-full"
+          />
         </div>
       </section>
 
