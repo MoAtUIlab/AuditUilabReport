@@ -86,8 +86,12 @@ export function DeliverPanel({ audit }: { audit: Audit }) {
           passcode: pin,
         },
       });
-      await copy(`${origin}/r/${token}\nPIN: ${passcode}`);
-      toast.success("Landing page link created and copied, with its PIN");
+      // Copy the link alone — combining it with the PIN in one clipboard write
+      // has broken in the wild when pasted somewhere that collapses the
+      // newline (address bars, some chat apps), turning "link\nPIN: 1234"
+      // into one mangled URL the client can't open.
+      await copy(`${origin}/r/${token}`);
+      toast.success(`Link copied. Share the PIN separately: ${passcode}`);
       setName("");
       setEmail("");
       setPin(randomPin());
@@ -271,9 +275,9 @@ export function DeliverPanel({ audit }: { audit: Audit }) {
                     variant="outline"
                     className="label-mono"
                     onClick={async () => {
-                      const ok = await copy(`${origin}/r/${l.token}\nPIN: ${l.passcode}`);
+                      const ok = await copy(`${origin}/r/${l.token}`);
                       toast[ok ? "success" : "error"](
-                        ok ? "Link and PIN copied" : "Could not copy",
+                        ok ? `Link copied. PIN: ${l.passcode}` : "Could not copy",
                       );
                     }}
                   >
