@@ -93,6 +93,17 @@ export function useAudits() {
   const deleteFn = useServerFn(deleteAuditFn);
   const uploadFn = useServerFn(uploadEvidencePhoto);
   const [pending, setPending] = useState(0);
+  // SSR always renders with no localStorage to read, but a client that has
+  // visited before has cached audits and a possible offline queue sitting in
+  // localStorage from the very first render — reading it immediately made the
+  // client's first paint diverge from the server HTML on every load,
+  // triggering a hydration mismatch (React error #418) that forced a full
+  // client-side remount. That remount racing against the report route's
+  // fixed-delay auto-print was the actual cause of broken/incomplete PDFs.
+  // Deferring local-only data to after mount keeps the first paint identical
+  // to the server's.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const { data, isPending, isError } = useQuery({
     queryKey: ["audits"],
@@ -166,7 +177,9 @@ export function useAudits() {
     [deleteFn, queryClient],
   );
 
-  const audits = mergedAudits(isError ? undefined : (data as Audit[] | undefined)).map(normalizeAudit);
+  const audits = mergedAudits(isError ? undefined : (data as Audit[] | undefined), mounted).map(
+    normalizeAudit,
+  );
 
   return { audits, ready: !isPending, offline: isError, pending, sync, saveAudit, removeAudit };
 }

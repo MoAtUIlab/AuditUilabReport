@@ -51,13 +51,22 @@ export function cachedAudits(): Audit[] {
   return safeParse<Audit[]>(localStorage.getItem(AUDIT_CACHE), []);
 }
 
-/** Cached list plus anything still waiting to sync, newest first. */
-export function mergedAudits(remote: Audit[] | undefined): Audit[] {
-  const base = remote && remote.length >= 0 && remote !== undefined ? remote : cachedAudits();
+/**
+ * Cached list plus anything still waiting to sync, newest first.
+ *
+ * `allowLocal` must be false until the caller is certain it's past the first
+ * client render (e.g. a post-mount effect has run) — reading localStorage on
+ * that first render makes it diverge from the server-rendered HTML, which
+ * has no localStorage to read, and triggers a hydration mismatch.
+ */
+export function mergedAudits(remote: Audit[] | undefined, allowLocal = true): Audit[] {
+  const base = remote ?? (allowLocal ? cachedAudits() : []);
   const map = new Map(base.map((a) => [a.id, a]));
-  for (const q of pendingAudits()) {
-    const existing = map.get(q.id);
-    if (!existing || q.updatedAt >= existing.updatedAt) map.set(q.id, q);
+  if (allowLocal) {
+    for (const q of pendingAudits()) {
+      const existing = map.get(q.id);
+      if (!existing || q.updatedAt >= existing.updatedAt) map.set(q.id, q);
+    }
   }
   return [...map.values()].sort((a, b) => (a.updatedAt > b.updatedAt ? -1 : 1));
 }
