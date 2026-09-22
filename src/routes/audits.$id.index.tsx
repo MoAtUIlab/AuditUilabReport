@@ -9,7 +9,6 @@ import {
   ImagePlus,
   Loader2,
   Plus,
-  Sparkles,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -33,7 +32,6 @@ import { SiteCapture } from "@/components/site-capture";
 import { useAudit, useProfiles } from "@/lib/audit-store";
 import { queuePhoto } from "@/lib/offline-queue";
 import { uploadEvidencePhoto } from "@/lib/audit.functions";
-import { draftExecutiveSummary } from "@/lib/ai.functions";
 import { gateBeforeLoad } from "@/lib/gate";
 import {
   ENGAGEMENT_STAGES,
@@ -267,7 +265,6 @@ function AuditEditor() {
                 value={draft.executiveSummary}
                 onChange={(e) => patch({ executiveSummary: e.target.value })}
               />
-              <DraftSummaryButton draft={draft} patch={patch} />
             </Field>
           </div>
 
@@ -1040,56 +1037,5 @@ function EvidenceUploadButton({
         {busy ? "Uploading…" : "Upload photo"}
       </Button>
     </>
-  );
-}
-
-function DraftSummaryButton({
-  draft,
-  patch,
-}: {
-  draft: Audit;
-  patch: (p: Partial<Audit>) => void;
-}) {
-  const [busy, setBusy] = useState(false);
-  const draftSummary = useServerFn(draftExecutiveSummary);
-
-  async function run() {
-    setBusy(true);
-    try {
-      const { summary } = await draftSummary({
-        data: {
-          client: draft.client,
-          site: draft.site,
-          industry: draft.industry,
-          scope: draft.scope,
-          maturity: draft.maturity.map((m) => ({ label: m.label, score: m.score })),
-          findings: draft.findings.map((f) => ({ area: f.area, observation: f.observation })),
-          opportunities: draft.opportunities.map((o) => ({
-            title: o.title,
-            hoursSavedPerYear: o.hoursSavedPerYear,
-            annualValue: o.annualValue,
-          })),
-        },
-      });
-      patch({ executiveSummary: summary });
-      toast.success("Summary drafted — review and edit before sharing.");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not draft the summary");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      onClick={run}
-      disabled={busy || !draft.client}
-      className="label-mono mt-3"
-    >
-      {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
-      {busy ? "Drafting…" : "Draft with AI"}
-    </Button>
   );
 }

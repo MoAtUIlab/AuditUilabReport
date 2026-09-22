@@ -1,6 +1,6 @@
 /**
  * Single guarded service-worker registrar.
- * Never registers in dev, in an iframe, in Lovable preview hosts, or with ?sw=off.
+ * Never registers in dev, in an iframe, or with ?sw=off.
  */
 const SW_URL = "/sw.js";
 
@@ -9,10 +9,7 @@ function blockedContext(): boolean {
   if (!import.meta.env.PROD) return true;
   if (window.top !== window.self) return true;
   if (new URL(window.location.href).searchParams.get("sw") === "off") return true;
-  const host = window.location.hostname;
-  if (host.startsWith("id-preview--") || host.startsWith("preview--")) return true;
-  const previewRoots = ["lovableproject.com", "lovableproject-dev.com", "beta.lovable.dev"];
-  return previewRoots.some((root) => host === root || host.endsWith(`.${root}`));
+  return false;
 }
 
 async function unregisterApp() {

@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ArrowUpRight, CloudOff, FileText, Loader2, Plus, Sparkles, UserPlus } from "lucide-react";
+import { ArrowUpRight, CloudOff, FileText, Plus, UserPlus } from "lucide-react";
 import { EngagementSection } from "@/components/engagement";
 import { MetricsPanel } from "@/components/metrics-panel";
 import { toast } from "sonner";
@@ -22,7 +22,6 @@ import {
 import { createBlankAudit, useAudits, useProfiles } from "@/lib/audit-store";
 import { currency, formatDate, maturityAverage, totalHours, totalValue, type Audit } from "@/lib/audit-types";
 import { createProfile } from "@/lib/audit.functions";
-import { draftAuditFromNotes } from "@/lib/ai.functions";
 import { gateBeforeLoad } from "@/lib/gate";
 
 export const Route = createFileRoute("/")({
@@ -120,7 +119,6 @@ function Dashboard() {
         </div>
 
         <TabsContent value="overview" className="space-y-0">
-          <NotesIntake saveAudit={saveAudit} />
           <EngagementSection audits={audits} profileId={selectedProfileId || undefined} />
           <TeamSection profilesReady={profilesReady} />
           <section className="mt-12">
@@ -201,76 +199,6 @@ function AuditRow({ audit }: { audit: Audit }) {
         </Button>
       </div>
     </li>
-  );
-}
-
-function NotesIntake({ saveAudit }: { saveAudit: (a: Audit) => Promise<void> }) {
-  const [notes, setNotes] = useState("");
-  const [busy, setBusy] = useState(false);
-  const draft = useServerFn(draftAuditFromNotes);
-  const navigate = useNavigate();
-
-  async function buildFromNotes() {
-    setBusy(true);
-    try {
-      const d = await draft({ data: { notes } });
-      const audit = createBlankAudit();
-      const filled: Audit = {
-        ...audit,
-        client: d.client || audit.client,
-        site: d.site,
-        industry: d.industry,
-        headcount: d.headcount,
-        executiveSummary: d.executiveSummary,
-        scope: d.scope,
-        introduction: d.introduction,
-        growthGoals: d.growthGoals,
-        maturity: audit.maturity.map((m) => {
-          const match = d.maturity.find(
-            (x) => x.label.toLowerCase() === m.label.toLowerCase(),
-          );
-          return match ? { ...m, score: match.score, note: match.note } : m;
-        }),
-        findings: d.findings.map((f) => ({ ...f, id: crypto.randomUUID() })),
-        opportunities: d.opportunities.map((o) => ({ ...o, id: crypto.randomUUID() })),
-        recommendations: d.recommendations.map((r) => ({ ...r, id: crypto.randomUUID() })),
-      };
-      await saveAudit(filled);
-      toast.success("Audit drafted from your notes — review and edit before sharing.");
-      navigate({ to: "/audits/$id", params: { id: filled.id } });
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not draft the audit");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <section className="mt-12 border-2 border-foreground p-6 sm:p-8">
-      <div className="flex flex-wrap items-center gap-3">
-        <Sparkles className="size-4 text-summer" />
-        <MonoLabel className="opacity-100">Paste your walkthrough notes</MonoLabel>
-      </div>
-      <p className="mt-3 max-w-2xl text-sm opacity-70">
-        Dump everything you captured on site — scribbles, voice-memo transcripts, bullet
-        points. AI will turn it into a structured audit: summary, maturity scores, findings
-        and an opportunity matrix. You review and edit everything before it goes to the client.
-      </p>
-      <Textarea
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-        placeholder="e.g. Holmwood Highgate, sheet-metal fabricator, ~85 staff. Office manager re-keys every job card into Xero at night — about 2 hrs/day. No sensors on the press line, downtime logged on paper…"
-        className="mt-4 min-h-32"
-      />
-      <Button
-        onClick={buildFromNotes}
-        disabled={busy || notes.trim().length < 10}
-        className="label-mono mt-4"
-      >
-        {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
-        {busy ? "Drafting audit…" : "Build audit from notes"}
-      </Button>
-    </section>
   );
 }
 
