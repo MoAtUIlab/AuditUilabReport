@@ -140,13 +140,19 @@ export function DeliverPanel({ audit }: { audit: Audit }) {
             <MonoLabel className="opacity-100">Report preview</MonoLabel>
             <p className="mt-2 max-w-xl text-sm opacity-70">
               This is the exact document the client receives — cover, findings, opportunities,
-              roadmap, proposal and signature pages, laid out for A4. Opens in its own tab, where
-              its "Print / PDF" button gives the most reliable save-as-PDF output.
+              roadmap, proposal and signature pages, laid out for A4.
             </p>
           </div>
-          <Button className="label-mono" onClick={openReportToPrint}>
-            <Printer className="size-3.5" /> Open report to print
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild className="label-mono">
+              <a href={`/api/audits/${audit.id}/pdf`} download>
+                <Download className="size-3.5" /> Download PDF
+              </a>
+            </Button>
+            <Button variant="outline" className="label-mono" onClick={openReportToPrint}>
+              <Printer className="size-3.5" /> Open to print
+            </Button>
+          </div>
         </div>
         <div className="mt-6 h-[70vh] overflow-hidden border border-border bg-muted">
           <iframe
@@ -164,12 +170,14 @@ export function DeliverPanel({ audit }: { audit: Audit }) {
           <MonoLabel className="opacity-100">Branch 1 · PDF download</MonoLabel>
           <h3 className="mt-2 text-xl font-bold tracking-[-0.02em]">Download to your device</h3>
           <p className="mt-2 text-sm opacity-70">
-            Opens the dossier in a new tab — use its "Print / PDF" button to save as PDF and
-            attach it to your own email. Nothing is tracked this way.
+            Saves a PDF file straight to your device — no print dialog — so you can attach it to
+            your own email. Nothing is tracked this way. Can take a few seconds to generate.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Button className="label-mono" onClick={openReportToPrint}>
-              <Download className="size-3.5" /> Download PDF
+            <Button asChild className="label-mono">
+              <a href={`/api/audits/${audit.id}/pdf`} download>
+                <Download className="size-3.5" /> Download PDF
+              </a>
             </Button>
             <Button asChild variant="outline" className="label-mono">
               <Link to="/audits/$id/report" params={{ id: audit.id }}>
