@@ -47,14 +47,14 @@ export function DeliverPanel({ audit }: { audit: Audit }) {
   const [busy, setBusy] = useState(false);
   const previewRef = useRef<HTMLIFrameElement>(null);
 
-  function printPreview() {
-    const win = previewRef.current?.contentWindow;
-    if (!win) {
-      toast.error("Preview hasn't finished loading yet — try again in a moment.");
-      return;
-    }
-    win.focus();
-    win.print();
+  // Printing through the embedded preview iframe (contentWindow.print()) looks
+  // right in some browsers but not others — Chrome/Edge can fail to re-layout
+  // an embedded iframe's document against real A4 dimensions at print time,
+  // producing distorted or incomplete output. Opening the report as its own
+  // real top-level tab and printing from there (its existing, already-correct
+  // "Print / PDF" button) avoids that entirely, at the cost of one extra click.
+  function openReportToPrint() {
+    window.open(`/audits/${audit.id}/report`, "_blank", "noopener");
   }
 
   const links = useQuery({
@@ -140,11 +140,12 @@ export function DeliverPanel({ audit }: { audit: Audit }) {
             <MonoLabel className="opacity-100">Report preview</MonoLabel>
             <p className="mt-2 max-w-xl text-sm opacity-70">
               This is the exact document the client receives — cover, findings, opportunities,
-              roadmap, proposal and signature pages, laid out for A4.
+              roadmap, proposal and signature pages, laid out for A4. Opens in its own tab, where
+              its "Print / PDF" button gives the most reliable save-as-PDF output.
             </p>
           </div>
-          <Button className="label-mono" onClick={printPreview}>
-            <Printer className="size-3.5" /> Export / Print PDF
+          <Button className="label-mono" onClick={openReportToPrint}>
+            <Printer className="size-3.5" /> Open report to print
           </Button>
         </div>
         <div className="mt-6 h-[70vh] overflow-hidden border border-border bg-muted">
@@ -163,11 +164,11 @@ export function DeliverPanel({ audit }: { audit: Audit }) {
           <MonoLabel className="opacity-100">Branch 1 · PDF download</MonoLabel>
           <h3 className="mt-2 text-xl font-bold tracking-[-0.02em]">Download to your device</h3>
           <p className="mt-2 text-sm opacity-70">
-            Opens the dossier and goes straight to save-as-PDF, so you can attach it to your own
-            email. Nothing is tracked this way.
+            Opens the dossier in a new tab — use its "Print / PDF" button to save as PDF and
+            attach it to your own email. Nothing is tracked this way.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Button className="label-mono" onClick={printPreview}>
+            <Button className="label-mono" onClick={openReportToPrint}>
               <Download className="size-3.5" /> Download PDF
             </Button>
             <Button asChild variant="outline" className="label-mono">
