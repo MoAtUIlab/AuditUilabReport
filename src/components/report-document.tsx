@@ -1,3 +1,4 @@
+import { Calendar, FileSignature, Lightbulb, Search, Settings2, Waypoints } from "lucide-react";
 import {
   MaturityBars,
   MonoLabel,
@@ -58,6 +59,66 @@ const RATING_LEGEND: {
   },
 ];
 
+const TOC_ITEMS = [
+  {
+    icon: Calendar,
+    title: "Introduction",
+    items: ["What makes us different", "Our goal for you", "Summary of our site visit"],
+  },
+  {
+    icon: Search,
+    title: "General Observations",
+    items: [],
+  },
+  {
+    icon: Lightbulb,
+    title: "Automation Opportunities",
+    items: ["Rating system", "Complexity, timeline and cost", "Timeline and cost estimate"],
+  },
+  {
+    icon: Settings2,
+    title: "Automation Opportunities in Detail",
+    items: [],
+  },
+  {
+    icon: Waypoints,
+    title: "The Automation Journey (including next steps)",
+    items: ["The very next step"],
+  },
+  {
+    icon: FileSignature,
+    title: "Proposal for Signature",
+    items: [],
+  },
+] as const;
+
+function TableOfContents() {
+  return (
+    <section className="print-break px-8 pt-14">
+      <h2 className="text-3xl font-bold tracking-[-0.03em]">Document Overview</h2>
+      <ol className="relative mt-10 space-y-10 border-l border-ink/15 pl-10">
+        {TOC_ITEMS.map((item, i) => (
+          <li key={item.title} className="avoid-break relative">
+            <span className="absolute top-0 -left-[3.25rem] flex size-10 items-center justify-center border border-ink/20 bg-paper text-summer">
+              <item.icon className="size-4.5" />
+            </span>
+            <p className="text-lg font-bold tracking-[-0.02em]">
+              <span className="text-summer">{i + 1}.</span> {item.title}
+            </p>
+            {item.items.length > 0 ? (
+              <ul className="mt-2 space-y-1 text-sm opacity-70">
+                {item.items.map((sub) => (
+                  <li key={sub}>{sub}</li>
+                ))}
+              </ul>
+            ) : null}
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 function engagementStatus(stage: string, current: string): "Complete" | "Next" | "Future" {
   const order = ENGAGEMENT_STAGES;
   const stageIdx = order.indexOf(stage as (typeof order)[number]);
@@ -74,6 +135,7 @@ export function ReportDocument({ audit }: { audit: Audit }) {
   const hasProposal = Boolean(
     audit.proposalInvestment || audit.proposalTimeline || audit.proposalScope,
   );
+  const coverPhoto = audit.photos.find((p) => p.isCover) ?? audit.photos[0];
 
   let sectionNumber = 0;
   const nextSection = () => String(++sectionNumber).padStart(2, "0");
@@ -87,26 +149,29 @@ export function ReportDocument({ audit }: { audit: Audit }) {
       ) : null}
 
       <article className="report-page pb-24">
-        <header className="avoid-break bg-sunset px-8 py-14 text-bone">
-          <div className="flex items-center justify-between">
-            <UiLabWordmark />
-            <MonoLabel className="opacity-80">{audit.reference}</MonoLabel>
-          </div>
-          <p className="label-mono mt-16 text-sun">Base Walkthrough · Executive dossier</p>
-          <h1 className="mt-4 text-5xl leading-[1.02] font-bold tracking-[-0.035em]">
-            {audit.client}
-          </h1>
-          <p className="mt-4 max-w-xl text-lg opacity-85">
-            Automation and applied AI opportunities identified during an on-site walkthrough of{" "}
-            <span className="brand-underline">{audit.site}</span>.
-          </p>
-          <dl className="mt-14 grid grid-cols-2 gap-6 border-t border-bone/25 pt-6 sm:grid-cols-4">
-            <Meta label="Site visit" value={formatDate(audit.walkthroughDate)} />
-            <Meta label="Industry" value={audit.industry} />
-            <Meta label="Site headcount" value={String(audit.headcount)} />
-            <Meta label="Prepared by" value={audit.auditor} />
-          </dl>
-          {audit.status === "client-ready" ? (
+        <header
+          className="avoid-break relative overflow-hidden bg-sunset bg-cover bg-center px-8 py-14 text-bone"
+          style={coverPhoto ? { backgroundImage: `url(${coverPhoto.url})` } : undefined}
+        >
+          {coverPhoto ? <div className="absolute inset-0 bg-sunset/80" aria-hidden /> : null}
+          <div className="relative">
+            <div className="flex items-center justify-between">
+              <UiLabWordmark />
+            </div>
+            <p className="label-mono mt-16 text-sun">Base Walkthrough · Executive dossier</p>
+            <h1 className="mt-4 text-5xl leading-[1.02] font-bold tracking-[-0.035em]">
+              {audit.client}
+            </h1>
+            <p className="mt-4 max-w-xl text-lg opacity-85">
+              Automation and applied AI opportunities identified during an on-site walkthrough of{" "}
+              <span className="brand-underline">{audit.site}</span>.
+            </p>
+            <dl className="mt-14 grid grid-cols-2 gap-6 border-t border-bone/25 pt-6 sm:grid-cols-4">
+              <Meta label="Site visit" value={formatDate(audit.walkthroughDate)} />
+              <Meta label="Report date" value={formatDate(audit.updatedAt)} />
+              <Meta label="Site headcount" value={String(audit.headcount)} />
+              <Meta label="Prepared by" value={audit.auditor} />
+            </dl>
             <div className="avoid-break mt-10 border border-bone/40 bg-ink/20 px-5 py-3">
               <p className="label-mono text-sun opacity-100">Confidential</p>
               <p className="mt-1 text-sm opacity-85">
@@ -115,8 +180,10 @@ export function ReportDocument({ audit }: { audit: Audit }) {
                 UiLab's consent.
               </p>
             </div>
-          ) : null}
+          </div>
         </header>
+
+        <TableOfContents />
 
         {audit.introduction || audit.growthGoals ? (
           <Section number={nextSection()} title="Introduction">
@@ -536,14 +603,19 @@ export function ReportDocument({ audit }: { audit: Audit }) {
               contract.
             </p>
           </div>
-          <MonoLabel>UILAB.COM.AU · {audit.reference}</MonoLabel>
+          <MonoLabel>UILAB.COM.AU</MonoLabel>
         </footer>
       </article>
 
+      <div className="print-running-header" aria-hidden>
+        <div className="report-page flex justify-between px-8 pt-2">
+          <span>Property of UiLab</span>
+          <span>Commercial in confidence</span>
+        </div>
+      </div>
       <div className="print-running-footer" aria-hidden>
-        <div className="report-page flex justify-between px-8 pb-2">
-          <span>Property of UiLab · Commercial in confidence</span>
-          <span>{audit.reference}</span>
+        <div className="report-page flex justify-center px-8 pb-2">
+          <span>UiLab</span>
         </div>
       </div>
     </>

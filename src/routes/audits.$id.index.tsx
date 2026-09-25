@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
+import { cn } from "@/lib/utils";
 import {
   MaturityBars,
   MonoLabel,
@@ -685,15 +686,22 @@ function AuditEditor() {
                 patch({ photos });
               };
               return (
-                <figure key={p.id} className="border bg-card">
-                  <img
-                    src={p.url}
-                    alt={p.caption || "Site evidence photo"}
-                    loading="lazy"
-                    width={1280}
-                    height={854}
-                    className="aspect-[3/2] w-full object-cover"
-                  />
+                <figure key={p.id} className={cn("border bg-card", p.isCover && "border-summer")}>
+                  <div className="relative">
+                    <img
+                      src={p.url}
+                      alt={p.caption || "Site evidence photo"}
+                      loading="lazy"
+                      width={1280}
+                      height={854}
+                      className="aspect-[3/2] w-full object-cover"
+                    />
+                    {p.isCover ? (
+                      <span className="label-mono absolute top-2 left-2 bg-summer px-2 py-1 text-primary-foreground">
+                        Cover photo
+                      </span>
+                    ) : null}
+                  </div>
                   <figcaption className="space-y-3 p-4">
                     <div className="grid grid-cols-2 gap-3">
                       <Input
@@ -718,6 +726,19 @@ function AuditEditor() {
                       value={p.url}
                       onChange={(e) => set({ url: e.target.value })}
                     />
+                    <Button
+                      variant={p.isCover ? "default" : "outline"}
+                      className="label-mono w-full"
+                      disabled={p.isCover}
+                      onClick={() =>
+                        patch({
+                          photos: draft.photos.map((x) => ({ ...x, isCover: x.id === p.id })),
+                        })
+                      }
+                    >
+                      <ImagePlus className="size-3.5" />
+                      {p.isCover ? "Cover photo" : "Set as cover"}
+                    </Button>
                     <Button
                       variant="outline"
                       className="label-mono w-full text-destructive"

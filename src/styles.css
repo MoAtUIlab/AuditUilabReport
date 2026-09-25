@@ -157,10 +157,13 @@
 
 .report-draft-watermark span {
   font-family: var(--font-mono);
-  font-size: 120pt;
+  /* Large enough to read as a watermark, small enough that the rotated
+     bounding box stays inside an A4 page instead of clipping at the edges
+     (which is what made it look broken rather than subtle). */
+  font-size: 64pt;
   font-weight: 700;
   letter-spacing: 0.05em;
-  color: rgba(30, 0, 16, 0.06);
+  color: rgba(30, 0, 16, 0.08);
   transform: rotate(-32deg);
   white-space: nowrap;
 }
@@ -208,7 +211,25 @@
     break-inside: avoid;
   }
 
-  /* Running footer on every printed page */
+  /* Running header + footer on every printed page. The cover page also gets
+     these via the CSS position:fixed path (manual browser print can't skip
+     it per-page like the server-generated PDF can) -- an acceptable
+     trade-off since that path is now secondary to the one-click download. */
+  .print-running-header {
+    display: block !important;
+    position: fixed;
+    top: 4mm;
+    left: 0;
+    right: 0;
+    padding-bottom: 2mm;
+    border-bottom: 0.3mm solid rgba(30, 0, 16, 0.2);
+    font-family: var(--font-mono);
+    font-size: 8pt;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(30, 0, 16, 0.6);
+  }
+
   .print-running-footer {
     display: block !important;
     position: fixed;
@@ -236,6 +257,7 @@
 }
 
 @media screen {
+  .print-running-header,
   .print-running-footer {
     display: none;
   }

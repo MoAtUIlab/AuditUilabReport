@@ -50,6 +50,8 @@ export interface EvidencePhoto {
   caption: string;
   area: string;
   tag: string;
+  /** Shown as the report cover background. At most one photo should have this set. */
+  isCover?: boolean;
 }
 
 export interface Profile {
