@@ -25,13 +25,20 @@ export default defineConfig({
           },
         },
       },
-      // pdf-lib and @supabase/functions-js's compiled output import `tslib`
-      // as a bare package specifier that this route's function bundle fails
-      // to resolve at runtime (ERR_MODULE_NOT_FOUND, confirmed via Vercel
-      // function logs). Force it inline instead of relying on externals
-      // resolution.
       externals: {
+        // pdf-lib and @supabase/functions-js's compiled output import `tslib`
+        // as a bare package specifier that this route's function bundle
+        // fails to resolve at runtime (ERR_MODULE_NOT_FOUND, confirmed via
+        // Vercel function logs). Force it inline instead of relying on
+        // externals resolution.
         inline: ["tslib"],
+        // @sparticuz/chromium locates its own bundled Chromium binary using a
+        // path relative to its own module location at runtime. Bundling it
+        // (the default for a "dependency" package) relocates its code away
+        // from that binary, so executablePath() can't find it (confirmed via
+        // Vercel logs: "input directory .../bin does not exist" — the
+        // package's own error message points at exactly this fix).
+        external: ["@sparticuz/chromium"],
       },
     },
   },
