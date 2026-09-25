@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { renderToStaticMarkup } from "react-dom/server";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { ReportDocument } from "@/components/report-document";
 import { getAudit } from "@/lib/audit.functions";
 import { isUnlocked } from "@/lib/gate.server";
@@ -32,9 +31,15 @@ export const Route = createFileRoute("/api/audits/$id/pdf")({
         const audit = await getAudit({ data: { id: params.id } });
         if (!audit) return new Response("Not found", { status: 404 });
 
-        const bodyHtml = renderToStaticMarkup(<ReportDocument audit={audit} />);
-        const origin = new URL(request.url).origin;
-        const html = `<!doctype html>
+        // TEMPORARY: the whole body is one try/catch that surfaces the real
+        // error message/stack while debugging deploy issues -- this route is
+        // already auth-gated, so it's safe to expose to a logged-in team
+        // member. Tighten this back up once PDF export is confirmed stable.
+        let browser;
+        try {
+          const bodyHtml = renderToStaticMarkup(<ReportDocument audit={audit} />);
+          const origin = new URL(request.url).origin;
+          const html = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -46,25 +51,17 @@ export const Route = createFileRoute("/api/audits/$id/pdf")({
 <body class="report-surface">${bodyHtml}</body>
 </html>`;
 
-        const [{ default: chromium }, puppeteer] = await Promise.all([
-          import("@sparticuz/chromium"),
-          import("puppeteer-core"),
-        ]);
+          const [{ default: chromium }, puppeteer, { PDFDocument, StandardFonts, rgb }] = await Promise.all([
+            import("@sparticuz/chromium"),
+            import("puppeteer-core"),
+            import("pdf-lib"),
+          ]);
 
-        let browser;
-        try {
           browser = await puppeteer.launch({
             args: chromium.args,
             executablePath: await chromium.executablePath(),
             headless: true,
           });
-        } catch (error) {
-          // TEMPORARY: surface the real error while debugging deploy issues —
-          // this route is already auth-gated, so it's safe to expose to a
-          // logged-in team member. Remove once PDF export is confirmed stable.
-          return new Response(`Launch failed: ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`, { status: 500 });
-        }
-        try {
           const page = await browser.newPage();
           await page.setContent(html, { waitUntil: "networkidle0", timeout: 25000 });
 
@@ -124,7 +121,7 @@ export const Route = createFileRoute("/api/audits/$id/pdf")({
         } catch (error) {
           return new Response(`PDF generation failed: ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`, { status: 500 });
         } finally {
-          await browser.close();
+          await browser?.close();
         }
       },
     },
