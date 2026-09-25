@@ -51,11 +51,19 @@ export const Route = createFileRoute("/api/audits/$id/pdf")({
           import("puppeteer-core"),
         ]);
 
-        const browser = await puppeteer.launch({
-          args: chromium.args,
-          executablePath: await chromium.executablePath(),
-          headless: true,
-        });
+        let browser;
+        try {
+          browser = await puppeteer.launch({
+            args: chromium.args,
+            executablePath: await chromium.executablePath(),
+            headless: true,
+          });
+        } catch (error) {
+          // TEMPORARY: surface the real error while debugging deploy issues —
+          // this route is already auth-gated, so it's safe to expose to a
+          // logged-in team member. Remove once PDF export is confirmed stable.
+          return new Response(`Launch failed: ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`, { status: 500 });
+        }
         try {
           const page = await browser.newPage();
           await page.setContent(html, { waitUntil: "networkidle0", timeout: 25000 });
@@ -113,6 +121,8 @@ export const Route = createFileRoute("/api/audits/$id/pdf")({
               "Cache-Control": "no-store",
             },
           });
+        } catch (error) {
+          return new Response(`PDF generation failed: ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`, { status: 500 });
         } finally {
           await browser.close();
         }
