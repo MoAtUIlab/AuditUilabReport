@@ -11,7 +11,29 @@ export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
-    server: { entry: "server" },
+    server: {
+      entry: "server",
+      // A standalone nitro.config.ts at the project root is NOT read by this
+      // wrapper's internal Nitro invocation (confirmed: settings there had no
+      // effect on a live deploy) -- this `server` object is the only place
+      // Nitro-level config actually takes effect here.
+      vercel: {
+        functionRules: {
+          "/api/audits/**": {
+            maxDuration: 60,
+            memory: 1769, // 1 vCPU tier; headless Chromium needs more than the default 1024MB
+          },
+        },
+      },
+      // pdf-lib and @supabase/functions-js's compiled output import `tslib`
+      // as a bare package specifier that this route's function bundle fails
+      // to resolve at runtime (ERR_MODULE_NOT_FOUND, confirmed via Vercel
+      // function logs). Force it inline instead of relying on externals
+      // resolution.
+      externals: {
+        inline: ["tslib"],
+      },
+    },
   },
   vite: {
     plugins: [
