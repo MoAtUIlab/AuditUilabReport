@@ -5,6 +5,16 @@ import { getAudit } from "@/lib/audit.functions";
 import { isUnlocked } from "@/lib/gate.server";
 import appCss from "../styles.css?url";
 
+// @sparticuz/chromium-min ships no local binary at all -- it downloads this
+// pack over HTTPS on first run and caches it in /tmp for warm starts. That
+// sidesteps the bundler-relocation problem entirely: the full @sparticuz/
+// chromium package resolves its binary via a path relative to its own module
+// location, which every attempt at marking it "external" for this specific
+// build pipeline failed to preserve (confirmed via repeated Vercel log
+// checks — same "input directory .../bin does not exist" error every time).
+const CHROMIUM_PACK_URL =
+  "https://github.com/Sparticuz/chromium/releases/download/v153.0.0/chromium-v153.0.0-pack.x64.tar";
+
 const HEADER_TEMPLATE = `
   <div style="width:100%; font-size:7.5px; font-family: 'Courier New', monospace; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(30,0,16,0.6); display:flex; justify-content:space-between; padding:0 6mm; border-bottom: 0.3mm solid rgba(30,0,16,0.2); padding-bottom: 2mm;">
     <span>Property of UiLab</span>
@@ -52,14 +62,14 @@ export const Route = createFileRoute("/api/audits/$id/pdf")({
 </html>`;
 
           const [{ default: chromium }, puppeteer, { PDFDocument, StandardFonts, rgb }] = await Promise.all([
-            import("@sparticuz/chromium"),
+            import("@sparticuz/chromium-min"),
             import("puppeteer-core"),
             import("pdf-lib"),
           ]);
 
           browser = await puppeteer.launch({
             args: chromium.args,
-            executablePath: await chromium.executablePath(),
+            executablePath: await chromium.executablePath(CHROMIUM_PACK_URL),
             headless: true,
           });
           const page = await browser.newPage();

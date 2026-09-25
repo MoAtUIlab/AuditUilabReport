@@ -32,13 +32,7 @@ export default defineConfig({
         // Vercel function logs). Force it inline instead of relying on
         // externals resolution.
         inline: ["tslib"],
-        // @sparticuz/chromium locates its own bundled Chromium binary using a
-        // path relative to its own module location at runtime. Bundling it
-        // (the default for a "dependency" package) relocates its code away
-        // from that binary, so executablePath() can't find it (confirmed via
-        // Vercel logs: "input directory .../bin does not exist" — the
-        // package's own error message points at exactly this fix).
-        external: ["@sparticuz/chromium"],
+        external: ["@sparticuz/chromium-min"],
       },
     },
   },
